@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🎙️ Host Panel — Pub Quiz</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0f1923;
+    --card: #1a2634;
+    --card2: #243447;
+    --accent: #f7c325;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --blue: #3498db;
+    --pink: #ef476f;
+    --text: #e8f0fe;
+    --muted: #7a9ab5;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .host-header {
+    background: linear-gradient(135deg, #1a2634, #243447);
+    border-bottom: 2px solid var(--accent);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .host-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    color: var(--accent);
+  }
+  .round-indicator {
+    background: var(--accent);
+    color: var(--bg);
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.9rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+
+  .content { padding: 16px; }
+
+  /* ── Auto-score notice ── */
+  .auto-notice {
+    background: linear-gradient(135deg, rgba(247,195,37,0.1), rgba(247,195,37,0.05));
+    border: 1px solid rgba(247,195,37,0.3);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .auto-notice strong { color: var(--accent); }
+
+  /* ── Player answer cards ── */
+  .player-section {
+    background: var(--card);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    overflow: hidden;
+    border: 1px solid var(--card2);
+  }
+  .player-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--card2);
+    cursor: pointer;
+    user-select: none;
+  }
+  .player-header-left { display: flex; align-items: center; gap: 10px; }
+  .player-emoji { font-size: 1.4rem; }
+  .player-names { line-height: 1.2; }
+  .player-quiz-name { font-weight: 800; font-size: 0.95rem; }
+  .player-real-name { font-size: 0.75rem; color: var(--muted); }
+  .player-score-badge {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    color: var(--accent);
+    min-width: 40px;
+    text-align: right;
+  }
+  .player-score-badge.auto { color: var(--blue); }
+
+  .answers-list { padding: 0 16px 14px; }
+  .answer-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--card2);
+  }
+  .answer-item:last-child { border-bottom: none; }
+  .q-num {
+    font-family: 'Fredoka One', cursive;
+    color: var(--muted);
+    min-width: 28px;
+    font-size: 0.9rem;
+  }
+  .answer-text {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 600;
+    word-break: break-word;
+  }
+  .answer-text.empty { color: var(--muted); font-style: italic; font-weight: 400; }
+  .mark-buttons { display: flex; gap: 6px; }
+  .mark-btn {
+    width: 36px; height: 36px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: var(--card2);
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mark-btn:active { transform: scale(0.9); }
+  .mark-btn.correct { background: var(--green); border-color: var(--green); }
+  .mark-btn.incorrect { background: var(--red); border-color: var(--red); }
+  .mark-btn.correct-ghost { border-color: var(--green); color: var(--green); }
+  .mark-btn.incorrect-ghost { border-color: var(--red); color: var(--red); }
+
+  /* ── Bottom action bar ── */
+  .action-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg);
+    border-top: 2px solid var(--card2);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 50;
+  }
+  .progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--card2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    transition: width 0.4s ease;
+    border-radius: 2px;
+  }
+  .action-buttons { display: flex; gap: 10px; }
+  .btn {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-release {
+    background: var(--green);
+    color: white;
+    box-shadow: 0 4px 16px rgba(46,204,113,0.3);
+  }
+  .btn-release:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(46,204,113,0.5); }
+  .btn-next {
+    background: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 4px 16px rgba(247,195,37,0.3);
+    display: none;
+  }
+  .btn-next.visible { display: block; }
+  .btn-next:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(247,195,37,0.5); }
+
+  /* ── Leaderboard preview ── */
+  .lb-preview {
+    margin-top: 16px;
+    display: none;
+  }
+  .lb-preview.visible { display: block; }
+  .lb-preview h3 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: var(--accent);
+  }
+  .lb-row {
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    gap: 10px;
+  }
+  .lb-rank { font-family: 'Fredoka One', cursive; min-width: 28px; color: var(--muted); }
+  .lb-name { flex: 1; font-weight: 700; font-size: 0.9rem; }
+  .lb-score { font-family: 'Fredoka One', cursive; color: var(--green); font-size: 1.1rem; }
+
+  /* ── Reset button (dev) ── */
+  .reset-section {
+    padding: 20px 16px;
+    border-top: 1px solid var(--card2);
+    margin-top: 20px;
+    text-align: center;
+  }
+  .btn-reset {
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--green);
+    color: white;
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    z-index: 200;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .submitted-count {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-align: center;
+    padding: 8px 0 4px;
+  }
+  .submitted-count span { color: var(--text); font-weight: 800; }
+</style>
+</head>
+<body>
+
+<div class="host-header">
+  <h1>🎙️ Host Panel</h1>
+  <div class="round-indicator" id="round-indicator">Round 1</div>
+</div>
+
+<div class="content">
+  <div class="auto-notice" id="auto-notice" style="display:none"></div>
+  <div class="submitted-count" id="submitted-count"></div>
+  <div id="players-list"></div>
+  <div class="lb-preview" id="lb-preview">
+    <h3>🏆 Current Standings</h3>
+    <div id="lb-preview-list"></div>
+  </div>
+  <div class="reset-section">
+    <button class="btn-reset" onclick="confirmReset()">🔄 Reset entire quiz</button>
+  </div>
+</div>
+
+<div class="action-bar">
+  <div>
+    <div class="progress-row">
+      <span id="progress-label">Marked: 0 / 0 answers</span>
+      <span id="answers-in">0 submitted</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="action-buttons">
+    <button class="btn btn-release" id="btn-release" onclick="releaseScores()">Release Scores 🎉</button>
+    <button class="btn btn-next" id="btn-next" onclick="nextRound()">Next Round →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const PLAYERS = [
+  { id: 'mia',    name: 'Mia',    emoji: '🦋' },
+  { id: 'james',  name: 'James',  emoji: '🎸' },
+  { id: 'olivia', name: 'Olivia', emoji: '🌸' },
+  { id: 'ciaran', name: 'Ciaran', emoji: '🦊' },
+  { id: 'tom',    name: 'Tom',    emoji: '🎩' },
+  { id: 'jess',   name: 'Jess',   emoji: '⭐' },
+];
+
+const AUTO_SCORE_ROUNDS = { 0: 'jess', 1: 'jess', 2: 'tom', 3: 'tom', 4: 'tom' };
+const AVG_PLAYERS = ['mia', 'james', 'olivia', 'ciaran'];
+const TOTAL_ROUNDS = 5;
+const QUESTIONS_PER_ROUND = 10;
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentRound = 0;
+let currentPhase = 'answering';
+let allAnswers = {}; // { playerId: { q1, q2, ... } }
+let marks = {};       // { playerId: { q1: true/false, ... } }
+let playersData = {};
+let scoresReleased = false;
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  const autoPlayerId = AUTO_SCORE_ROUNDS[currentRound];
+  const notice = document.getElementById('auto-notice');
+  if (autoPlayerId) {
+    const p = PLAYERS.find(x => x.id === autoPlayerId);
+    notice.style.display = 'block';
+    notice.innerHTML = `<strong>${p.emoji} ${p.name}</strong> is hosting this round — they'll receive the average score of Mia, James, Olivia & Ciaran automatically. No marking needed for them.`;
+  } else {
+    notice.style.display = 'none';
+  }
+
+  document.getElementById('round-indicator').textContent = `Round ${currentRound + 1}`;
+
+  // Count submitted (non-auto players)
+  const activePlayerIds = PLAYERS.filter(p => p.id !== autoPlayerId).map(p => p.id);
+  const submittedCount = activePlayerIds.filter(id => allAnswers[id]).length;
+  document.getElementById('submitted-count').innerHTML =
+    `<span>${submittedCount}</span> of <span>${activePlayerIds.length}</span> players have submitted`;
+  document.getElementById('answers-in').textContent = `${submittedCount} submitted`;
+
+  // Build player sections
+  const list = document.getElementById('players-list');
+  list.innerHTML = '';
+
+  let totalMarks = 0;
+  let totalPossible = 0;
+
+  PLAYERS.forEach(p => {
+    if (p.id === autoPlayerId) return; // skip auto-scoring player
+
+    const section = document.createElement('div');
+    section.className = 'player-section';
+    section.id = `section-${p.id}`;
+
+    const pData = playersData[p.id] || {};
+    const qName = pData.quizName || p.name;
+    const answers = allAnswers[p.id] || {};
+    const playerMarks = marks[p.id] || {};
+
+    let correctCount = 0;
+    for (let i = 1; i <= QUESTIONS_PER_ROUND; i++) {
+      if (playerMarks[`q${i}`] === true) correctCount++;
+    }
+
+    const markedCount = Object.keys(playerMarks).length;
+    const hasAnswers = Object.keys(answers).length > 0;
+
+    totalMarks += markedCount;
+    totalPossible += hasAnswers ? QUESTIONS_PER_ROUND : 0;
+
+    section.innerHTML = `
+      <div class="player-header" onclick="toggleSection('${p.id}')">
+        <div class="player-header-left">
+          <span class="player-emoji">${p.emoji}</span>
+          <div class="player-names">
+            <div class="player-quiz-name">${qName}</div>
+            <div class="player-real-name">${p.name}${!hasAnswers ? ' · waiting...' : ''}</div>
+          </div>
+        </div>
+        <div class="player-score-badge">${hasAnswers ? correctCount + '/10' : '—'}</div>
+      </div>
+      <div class="answers-list" id="answers-${p.id}" style="display:${hasAnswers ? 'block' : 'none'}">
+        ${hasAnswers ? buildAnswerItems(p.id, answers, playerMarks) : '<p style="padding:10px 0;color:var(--muted);font-size:0.85rem;">No answers submitted yet</p>'}
+      </div>
+    `;
+    list.appendChild(section);
+  });
+
+  // Progress
+  const pct = totalPossible > 0 ? Math.round((totalMarks / totalPossible) * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `Marked: ${totalMarks} / ${totalPossible} answers`;
+
+  // Show/hide next button
+  const nextBtn = document.getElementById('btn-next');
+  if (scoresReleased) {
+    nextBtn.classList.add('visible');
+    nextBtn.textContent = currentRound < TOTAL_ROUNDS - 1 ? `Next Round →` : '🏆 Quiz Over!';
+    nextBtn.disabled = currentRound >= TOTAL_ROUNDS - 1;
+  } else {
+    nextBtn.classList.remove('visible');
+  }
+
+  // Leaderboard preview after scores released
+  if (scoresReleased) {
+    buildLeaderboardPreview();
+    document.getElementById('lb-preview').classList.add('visible');
+  }
+}
+
+function buildAnswerItems(playerId, answers, playerMarks) {
+  let html = '';
+  for (let i = 1; i <= QUESTIONS_PER_ROUND; i++) {
+    const key = `q${i}`;
+    const ans = answers[key] || '';
+    const mark = playerMarks[key];
+    const isCorrect = mark === true;
+    const isIncorrect = mark === false;
+    html += `
+      <div class="answer-item" id="item-${playerId}-${key}">
+        <span class="q-num">Q${i}</span>
+        <span class="answer-text ${!ans ? 'empty' : ''}">${ans || 'No answer'}</span>
+        <div class="mark-buttons">
+          <button class="mark-btn ${isCorrect ? 'correct' : 'correct-ghost'}" onclick="mark('${playerId}','${key}',true)">✓</button>
+          <button class="mark-btn ${isIncorrect ? 'incorrect' : 'incorrect-ghost'}" onclick="mark('${playerId}','${key}',false)">✗</button>
+        </div>
+      </div>
+    `;
+  }
+  return html;
+}
+
+function toggleSection(playerId) {
+  const el = document.getElementById(`answers-${playerId}`);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── Mark an answer ─────────────────────────────────────────────────────────────
+async function mark(playerId, qKey, isCorrect) {
+  if (!marks[playerId]) marks[playerId] = {};
+  marks[playerId][qKey] = isCorrect;
+
+  // Save to Firebase
+  await db.ref(`rounds/round${currentRound}/marks/${playerId}/${qKey}`).set(isCorrect);
+
+  render();
+}
+
+// ── Release scores ─────────────────────────────────────────────────────────────
+async function releaseScores() {
+  const autoPlayerId = AUTO_SCORE_ROUNDS[currentRound];
+
+  // Compute scores for all active players
+  const scores = {};
+  const activePlayerIds = PLAYERS.filter(p => p.id !== autoPlayerId).map(p => p.id);
+
+  for (const id of activePlayerIds) {
+    const playerMarks = marks[id] || {};
+    let correct = 0;
+    for (let i = 1; i <= QUESTIONS_PER_ROUND; i++) {
+      if (playerMarks[`q${i}`] === true) correct++;
+    }
+    scores[id] = correct;
+    // Save to player node
+    await db.ref(`players/${id}/scores/round${currentRound}`).set(correct);
+  }
+
+  // Compute auto-score if applicable
+  if (autoPlayerId) {
+    const avgScores = AVG_PLAYERS.map(id => scores[id] ?? 0);
+    const avg = avgScores.reduce((a, b) => a + b, 0) / avgScores.length;
+    const autoScore = Math.round(avg * 10) / 10;
+    scores[autoPlayerId] = autoScore;
+    await db.ref(`players/${autoPlayerId}/scores/round${currentRound}`).set(autoScore);
+  }
+
+  // Save scores to round node
+  await db.ref(`rounds/round${currentRound}/scores`).set(scores);
+
+  // Signal players: scores released
+  await db.ref('game').update({ phase: 'scores', currentRound });
+
+  scoresReleased = true;
+  showToast('Scores released! 🎉');
+  render();
+}
+
+// ── Next round ─────────────────────────────────────────────────────────────────
+async function nextRound() {
+  if (currentRound >= TOTAL_ROUNDS - 1) return;
+  currentRound++;
+  scoresReleased = false;
+  allAnswers = {};
+  marks = {};
+
+  await db.ref('game').update({ phase: 'answering', currentRound });
+  render();
+}
+
+// ── Build leaderboard preview ──────────────────────────────────────────────────
+async function buildLeaderboardPreview() {
+  const snap = await db.ref('players').get();
+  const data = snap.val() || {};
+
+  const rows = PLAYERS.map(p => {
+    const pData = data[p.id] || {};
+    const scores = pData.scores || {};
+    let total = 0;
+    for (let i = 0; i <= currentRound; i++) total += scores[`round${i}`] ?? 0;
+    return {
+      id: p.id,
+      name: pData.quizName || p.name,
+      total
+    };
+  });
+  rows.sort((a, b) => b.total - a.total);
+
+  const list = document.getElementById('lb-preview-list');
+  list.innerHTML = '';
+  const medals = ['🥇', '🥈', '🥉'];
+  rows.forEach((row, i) => {
+    const div = document.createElement('div');
+    div.className = 'lb-row';
+    div.innerHTML = `
+      <div class="lb-rank">${medals[i] || (i + 1) + '.'}</div>
+      <div class="lb-name">${row.name}</div>
+      <div class="lb-score">${Number.isInteger(row.total) ? row.total : row.total.toFixed(1)}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+async function confirmReset() {
+  if (!confirm('⚠️ This will wipe all players, answers and scores. Are you sure?')) return;
+  await db.ref('/').set(null);
+  await db.ref('game').set({ phase: 'answering', currentRound: 0 });
+  currentRound = 0;
+  scoresReleased = false;
+  allAnswers = {};
+  marks = {};
+  playersData = {};
+  document.getElementById('lb-preview').classList.remove('visible');
+  render();
+  showToast('Quiz reset ✓');
+}
+
+// ── Firebase listeners ─────────────────────────────────────────────────────────
+function init() {
+  // Game state
+  db.ref('game').on('value', snap => {
+    const game = snap.val();
+    if (!game) {
+      db.ref('game').set({ phase: 'answering', currentRound: 0 });
+      return;
+    }
+    const newRound = game.currentRound ?? 0;
+    if (newRound !== currentRound) {
+      currentRound = newRound;
+      allAnswers = {};
+      marks = {};
+      scoresReleased = false;
+    }
+    currentPhase = game.phase ?? 'answering';
+    scoresReleased = currentPhase === 'scores';
+    render();
+  });
+
+  // Answers
+  db.ref('rounds').on('value', snap => {
+    const data = snap.val() || {};
+    const roundData = data[`round${currentRound}`] || {};
+    allAnswers = roundData.answers || {};
+    marks = roundData.marks || {};
+    render();
+  });
+
+  // Player data
+  db.ref('players').on('value', snap => {
+    playersData = snap.val() || {};
+    render();
+  });
+}
+
+init();
+</script>
+</body>
+</html>

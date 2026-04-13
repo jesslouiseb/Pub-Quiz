@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🍺 Pub Quiz Night</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #1a0a2e;
+    --card: #2d1b4e;
+    --card2: #3d2660;
+    --accent: #ff6b35;
+    --yellow: #ffd166;
+    --green: #06d6a0;
+    --pink: #ef476f;
+    --text: #f8f4ff;
+    --muted: #9b84c0;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Stars background ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 60%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(2px 2px at 35% 15%, rgba(255,209,102,0.5) 0%, transparent 100%),
+      radial-gradient(2px 2px at 65% 85%, rgba(255,107,53,0.4) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .screen { display: none; position: relative; z-index: 1; }
+  .screen.active { display: block; }
+
+  /* ── Header ── */
+  .pub-header {
+    text-align: center;
+    padding: 28px 20px 16px;
+  }
+  .pub-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.4rem;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, var(--yellow), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .pub-header p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-top: 4px;
+  }
+
+  /* ── Name select screen ── */
+  .name-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 10px 20px 30px;
+  }
+  .name-tile {
+    background: var(--card);
+    border: 2px solid var(--card2);
+    border-radius: var(--radius);
+    padding: 22px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .name-tile:active { transform: scale(0.95); }
+  .name-tile:not(.taken):hover {
+    border-color: var(--accent);
+    background: var(--card2);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(255,107,53,0.3);
+  }
+  .name-tile.taken {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+  }
+  .name-tile .emoji { font-size: 2.4rem; display: block; margin-bottom: 8px; }
+  .name-tile .real-name { font-weight: 800; font-size: 1.05rem; }
+  .name-tile .quiz-name { font-size: 0.78rem; color: var(--yellow); margin-top: 4px; font-weight: 600; }
+  .taken-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: var(--pink);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 2px solid var(--accent);
+    border-radius: 20px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(255,107,53,0.4);
+    animation: popIn 0.2s ease;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal h2 { font-family: 'Fredoka One', cursive; font-size: 1.5rem; margin-bottom: 6px; }
+  .modal p { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+  .modal input {
+    width: 100%;
+    background: var(--bg);
+    border: 2px solid var(--card2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    outline: none;
+    transition: border-color 0.2s;
+    text-align: center;
+  }
+  .modal input:focus { border-color: var(--accent); }
+  .modal input::placeholder { color: var(--muted); font-weight: 400; }
+  .modal-buttons { display: flex; gap: 10px; margin-top: 16px; }
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #ff8355; box-shadow: 0 4px 16px rgba(255,107,53,0.5); }
+  .btn-ghost { background: var(--card2); color: var(--text); }
+  .btn-ghost:hover { background: #4d3570; }
+
+  /* ── Answer screen ── */
+  .round-banner {
+    margin: 0 20px 16px;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .round-banner .round-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+  }
+  .round-banner .player-chip {
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .answers-container { padding: 0 20px 20px; }
+  .answer-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .q-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    color: var(--yellow);
+    min-width: 32px;
+  }
+  .answer-input {
+    flex: 1;
+    background: var(--card);
+    border: 2px solid var(--card2);
+    border-radius: 12px;
+    padding: 13px 16px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .answer-input:focus { border-color: var(--yellow); }
+  .answer-input:disabled {
+    opacity: 0.6;
+    background: var(--bg);
+  }
+
+  .submit-bar {
+    position: sticky;
+    bottom: 0;
+    padding: 16px 20px;
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+    z-index: 10;
+  }
+  .btn-submit {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--green), #04b386);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(6,214,160,0.4);
+  }
+  .btn-submit:active { transform: scale(0.97); }
+  .btn-submit:hover { box-shadow: 0 6px 28px rgba(6,214,160,0.6); }
+  .btn-submit:disabled {
+    background: var(--card2);
+    color: var(--muted);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  /* ── Waiting screen ── */
+  .waiting-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .spinner {
+    width: 70px; height: 70px;
+    border: 5px solid var(--card2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 28px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .waiting-screen h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+  .waiting-screen p { color: var(--muted); font-size: 1rem; }
+
+  /* ── Score reveal ── */
+  .score-screen { padding: 20px 20px 30px; }
+  .your-score-card {
+    background: linear-gradient(135deg, var(--card2), var(--card));
+    border: 2px solid var(--yellow);
+    border-radius: 20px;
+    padding: 28px 20px;
+    text-align: center;
+    margin-bottom: 24px;
+    box-shadow: 0 0 30px rgba(255,209,102,0.2);
+  }
+  .your-score-card .label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .your-score-card .big-score {
+    font-family: 'Fredoka One', cursive;
+    font-size: 4rem;
+    color: var(--yellow);
+    line-height: 1;
+    margin: 8px 0 4px;
+  }
+  .your-score-card .cumulative {
+    font-size: 0.95rem;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .your-score-card .cumulative span {
+    color: var(--green);
+    font-weight: 800;
+  }
+
+  .leaderboard-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .lb-row {
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    animation: slideIn 0.4s ease both;
+  }
+  .lb-row.me { border-color: var(--yellow); background: var(--card2); }
+  .lb-row.first-place { border-color: var(--accent); }
+  @keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .lb-rank {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    min-width: 36px;
+    color: var(--muted);
+  }
+  .lb-rank.gold { color: var(--yellow); }
+  .lb-name {
+    flex: 1;
+    font-weight: 800;
+    font-size: 0.95rem;
+  }
+  .lb-scores { text-align: right; }
+  .lb-scores .round-pts {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .lb-scores .total-pts {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    color: var(--green);
+  }
+  .auto-badge {
+    font-size: 0.65rem;
+    background: var(--pink);
+    color: white;
+    border-radius: 8px;
+    padding: 2px 6px;
+    font-weight: 800;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  /* ── Toasts ── */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--green);
+    color: var(--bg);
+    padding: 14px 24px;
+    border-radius: 30px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    z-index: 200;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Utils ── */
+  .text-center { text-align: center; }
+  .mt-20 { margin-top: 20px; }
+
+  /* ── Waiting-as-host note ── */
+  .host-waiting-note {
+    background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(239,71,111,0.1));
+    border: 1px solid rgba(255,107,53,0.3);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin: 16px 20px 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .host-waiting-note strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ══ SCREEN 1: Name Select ══ -->
+<div id="screen-select" class="screen active">
+  <div class="pub-header">
+    <h1>🍺 Pub Quiz Night</h1>
+    <p>Tap your name to join</p>
+  </div>
+  <div class="name-grid" id="name-grid"></div>
+</div>
+
+<!-- ══ SCREEN 2: Answer Screen ══ -->
+<div id="screen-answers" class="screen">
+  <div class="pub-header">
+    <h1>🍺 Pub Quiz Night</h1>
+  </div>
+  <div class="round-banner">
+    <span class="round-label" id="round-label">Round 1</span>
+    <span class="player-chip" id="player-chip">You</span>
+  </div>
+  <div class="answers-container" id="answers-container"></div>
+  <div class="submit-bar">
+    <button class="btn-submit" id="submit-btn" onclick="submitAnswers()">Submit Answers ✓</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3: Waiting ══ -->
+<div id="screen-waiting" class="screen">
+  <div class="waiting-screen">
+    <div class="spinner"></div>
+    <h2 id="waiting-title">Answers submitted!</h2>
+    <p id="waiting-msg">Waiting for the host to mark your answers...</p>
+  </div>
+</div>
+
+<!-- ══ SCREEN 4: Score Reveal ══ -->
+<div id="screen-scores" class="screen">
+  <div class="pub-header">
+    <h1>🍺 Results!</h1>
+  </div>
+  <div class="score-screen">
+    <div class="your-score-card">
+      <div class="label" id="score-round-label">Round 1 Score</div>
+      <div class="big-score" id="your-round-score">—</div>
+      <div class="cumulative">Total: <span id="your-total-score">—</span> pts</div>
+    </div>
+    <div class="leaderboard-title">🏆 Leaderboard</div>
+    <div id="leaderboard-list"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Enter quiz name ══ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2 id="modal-title">What's your quiz name?</h2>
+    <p id="modal-sub">Choose something legendary</p>
+    <input type="text" id="quiz-name-input" placeholder="e.g. The Quiz Khalifa" maxlength="30" />
+    <div class="modal-buttons">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmName()">Let's go! 🎉</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Toast ══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const PLAYERS = [
+  { id: 'mia',    name: 'Mia',    emoji: '🦋' },
+  { id: 'james',  name: 'James',  emoji: '🎸' },
+  { id: 'olivia', name: 'Olivia', emoji: '🌸' },
+  { id: 'ciaran', name: 'Ciaran', emoji: '🦊' },
+  { id: 'tom',    name: 'Tom',    emoji: '🎩' },
+  { id: 'jess',   name: 'Jess',   emoji: '⭐' },
+];
+
+// Who auto-scores per round (0-indexed). Host sits out = gets auto-score.
+// Jess hosts rounds 1–2 (index 0,1), Tom hosts rounds 3–5 (index 2,3,4)
+const AUTO_SCORE_ROUNDS = {
+  0: 'jess',
+  1: 'jess',
+  2: 'tom',
+  3: 'tom',
+  4: 'tom',
+};
+
+const TOTAL_ROUNDS = 5;
+const QUESTIONS_PER_ROUND = 10;
+// Players whose scores are averaged for auto-score
+const AVG_PLAYERS = ['mia', 'james', 'olivia', 'ciaran'];
+
+// ── State ────────────────────────────────────────────────────────────────────
+let myPlayerId = null;
+let myQuizName = null;
+let pendingPlayerId = null;
+let currentRound = 0; // 0-indexed
+let hasSubmitted = false;
+
+// ── Screens ──────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── Build name select grid ────────────────────────────────────────────────────
+function buildGrid(takenMap, quizNames) {
+  const grid = document.getElementById('name-grid');
+  grid.innerHTML = '';
+  PLAYERS.forEach(p => {
+    const taken = takenMap[p.id];
+    const div = document.createElement('div');
+    div.className = 'name-tile' + (taken ? ' taken' : '');
+    div.innerHTML = `
+      <span class="emoji">${p.emoji}</span>
+      <div class="real-name">${p.name}</div>
+      ${quizNames[p.id] ? `<div class="quiz-name">"${quizNames[p.id]}"</div>` : ''}
+      ${taken ? '<div class="taken-badge">Taken</div>' : ''}
+    `;
+    if (!taken) div.onclick = () => openModal(p.id, p.name);
+    grid.appendChild(div);
+  });
+}
+
+// ── Modal ────────────────────────────────────────────────────────────────────
+function openModal(playerId, playerName) {
+  pendingPlayerId = playerId;
+  document.getElementById('modal-title').textContent = `Hey ${playerName}! 👋`;
+  document.getElementById('modal-sub').textContent = 'Choose your quiz name';
+  document.getElementById('quiz-name-input').value = '';
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('quiz-name-input').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  pendingPlayerId = null;
+}
+
+document.getElementById('quiz-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmName();
+});
+
+async function confirmName() {
+  const input = document.getElementById('quiz-name-input').value.trim();
+  if (!input) { showToast('Enter a quiz name first! ✏️'); return; }
+
+  myPlayerId = pendingPlayerId;
+  myQuizName = input;
+  closeModal();
+
+  // Write to Firebase
+  await db.ref(`players/${myPlayerId}`).set({
+    realName: PLAYERS.find(p => p.id === myPlayerId).name,
+    quizName: myQuizName,
+    claimed: true,
+    scores: {},
+    answers: {}
+  });
+
+  // Check current game state
+  const snap = await db.ref('game').get();
+  const game = snap.val() || {};
+  currentRound = game.currentRound ?? 0;
+
+  enterRound(currentRound);
+}
+
+// ── Enter a round ────────────────────────────────────────────────────────────
+function enterRound(roundIndex) {
+  currentRound = roundIndex;
+  hasSubmitted = false;
+
+  const isAutoRound = AUTO_SCORE_ROUNDS[roundIndex] === myPlayerId;
+
+  if (isAutoRound) {
+    // This player is hosting — show waiting screen with note
+    document.getElementById('waiting-title').textContent = `You're hosting Round ${roundIndex + 1}!`;
+    document.getElementById('waiting-msg').textContent =
+      `You'll automatically get the average score of the other players. Sit back and run the quiz! 🎙️`;
+    showScreen('waiting');
+  } else {
+    buildAnswerScreen(roundIndex);
+    showScreen('answers');
+  }
+}
+
+// ── Answer screen ─────────────────────────────────────────────────────────────
+function buildAnswerScreen(roundIndex) {
+  document.getElementById('round-label').textContent = `Round ${roundIndex + 1}`;
+  document.getElementById('player-chip').textContent = myQuizName || 'You';
+
+  const container = document.getElementById('answers-container');
+  container.innerHTML = '';
+  for (let i = 1; i <= QUESTIONS_PER_ROUND; i++) {
+    const row = document.createElement('div');
+    row.className = 'answer-row';
+    row.innerHTML = `
+      <span class="q-label">Q${i}</span>
+      <input class="answer-input" id="ans-${i}" type="text" placeholder="Your answer..." autocomplete="off" />
+    `;
+    container.appendChild(row);
+  }
+
+  document.getElementById('submit-btn').disabled = false;
+  document.getElementById('submit-btn').textContent = 'Submit Answers ✓';
+}
+
+// ── Submit answers ────────────────────────────────────────────────────────────
+async function submitAnswers() {
+  if (hasSubmitted) return;
+
+  const answers = {};
+  for (let i = 1; i <= QUESTIONS_PER_ROUND; i++) {
+    answers[`q${i}`] = document.getElementById(`ans-${i}`).value.trim() || '';
+  }
+
+  hasSubmitted = true;
+
+  // Lock inputs
+  for (let i = 1; i <= QUESTIONS_PER_ROUND; i++) {
+    document.getElementById(`ans-${i}`).disabled = true;
+  }
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-btn').textContent = 'Submitted! ✓';
+
+  // Save to Firebase
+  await db.ref(`rounds/round${currentRound}/answers/${myPlayerId}`).set(answers);
+
+  // Move to waiting screen
+  document.getElementById('waiting-title').textContent = 'Answers submitted! 🎉';
+  document.getElementById('waiting-msg').textContent = 'Waiting for the host to mark your answers...';
+  showScreen('waiting');
+}
+
+// ── Listen for score release ──────────────────────────────────────────────────
+function listenForScores() {
+  db.ref('game').on('value', snap => {
+    const game = snap.val();
+    if (!game) return;
+
+    const round = game.currentRound ?? 0;
+    const phase = game.phase ?? 'answering';
+
+    if (phase === 'scores' && round === currentRound) {
+      // Scores released — show results
+      loadAndShowScores(round);
+    } else if (phase === 'answering' && round > currentRound) {
+      // Host advanced to next round
+      enterRound(round);
+    } else if (phase === 'answering' && round === currentRound && myPlayerId && !hasSubmitted) {
+      // Make sure we're on answer screen (e.g. page reload)
+      const isAutoRound = AUTO_SCORE_ROUNDS[currentRound] === myPlayerId;
+      if (!isAutoRound) showScreen('answers');
+    }
+  });
+}
+
+// ── Load and show scores ──────────────────────────────────────────────────────
+async function loadAndShowScores(roundIndex) {
+  const scoresSnap = await db.ref(`rounds/round${roundIndex}/scores`).get();
+  const allScores = scoresSnap.val() || {};
+
+  // Build cumulative across all rounds up to and including this one
+  const cumulativeSnap = await db.ref('players').get();
+  const playersData = cumulativeSnap.val() || {};
+
+  // My scores
+  const myRoundScore = allScores[myPlayerId] ?? 0;
+  const myEntry = playersData[myPlayerId];
+  const myCumulative = computeCumulative(playersData, allScores, roundIndex, myPlayerId);
+
+  document.getElementById('score-round-label').textContent = `Round ${roundIndex + 1} Score`;
+  document.getElementById('your-round-score').textContent = formatScore(myRoundScore);
+  document.getElementById('your-total-score').textContent = formatScore(myCumulative);
+
+  // Build leaderboard
+  const rows = PLAYERS.map(p => {
+    const roundScore = allScores[p.id] ?? 0;
+    const cum = computeCumulative(playersData, allScores, roundIndex, p.id);
+    const isAuto = AUTO_SCORE_ROUNDS[roundIndex] === p.id;
+    const qName = playersData[p.id]?.quizName || p.name;
+    return { id: p.id, qName, roundScore, cum, isAuto };
+  });
+  rows.sort((a, b) => b.cum - a.cum);
+
+  const list = document.getElementById('leaderboard-list');
+  list.innerHTML = '';
+  rows.forEach((row, idx) => {
+    const div = document.createElement('div');
+    const isMe = row.id === myPlayerId;
+    div.className = 'lb-row' + (isMe ? ' me' : '') + (idx === 0 ? ' first-place' : '');
+    div.style.animationDelay = `${idx * 0.08}s`;
+    const rank = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+    div.innerHTML = `
+      <div class="lb-rank ${idx === 0 ? 'gold' : ''}">${rank}</div>
+      <div class="lb-name">${row.qName}${row.isAuto ? '<span class="auto-badge">AUTO</span>' : ''}${isMe ? ' 👈' : ''}</div>
+      <div class="lb-scores">
+        <div class="round-pts">+${formatScore(row.roundScore)} this round</div>
+        <div class="total-pts">${formatScore(row.cum)}</div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  showScreen('scores');
+}
+
+// ── Compute cumulative score for a player up to a given round ─────────────────
+function computeCumulative(playersData, currentRoundScores, currentRoundIndex, playerId) {
+  // We need scores from rounds 0..currentRoundIndex
+  // For previous rounds, scores are stored in Firebase rounds/roundN/scores
+  // We'll read from a running total we can store, OR we just sum what we have
+  // For simplicity: store scores per round in player node, read them here
+  const p = playersData[playerId];
+  if (!p) return 0;
+  const scores = p.scores || {};
+  let total = 0;
+  for (let i = 0; i <= currentRoundIndex; i++) {
+    total += scores[`round${i}`] ?? 0;
+  }
+  return total;
+}
+
+function formatScore(n) {
+  if (typeof n !== 'number') return '0';
+  return Number.isInteger(n) ? n.toString() : n.toFixed(1);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  // Watch taken status + quiz names
+  db.ref('players').on('value', snap => {
+    const data = snap.val() || {};
+    const takenMap = {};
+    const quizNames = {};
+    Object.keys(data).forEach(id => {
+      if (data[id].claimed) takenMap[id] = true;
+      if (data[id].quizName) quizNames[id] = data[id].quizName;
+    });
+    if (!myPlayerId) buildGrid(takenMap, quizNames); // Only update grid before player has selected
+  });
+
+  listenForScores();
+}
+
+init();
+</script>
+</body>
+</html>
