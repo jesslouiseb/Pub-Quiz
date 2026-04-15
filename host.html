@@ -2,77 +2,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-@@ -12,72 +13,62 @@
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@500;700&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Host Panel — Left No Crumbs</title>
 
-  :root {
-    --blue:   #2B3FFF;
-    --white:  #FFFFFF;
-    --pink:   #E8437A;
-    --orange: #F06030;
-    --yellow: #F5C842;
-    --purple: #8B2D8B;
-    --red:    #C8213A;
-  }
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@500;700&display=swap');
+
   :root { --blue: #2B3FFF; --yellow: #F5C842; --pink: #E8437A; --orange: #F06030; --purple: #8B2D8B; }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-font-family: 'Barlow', sans-serif;
-min-height: 100vh;
-padding-bottom: 175px;
-    /* Host bg: orange-purple-yellow halftone-ish feel */
-background:
-radial-gradient(ellipse 60% 50% at 90% 5%, var(--yellow) 0%, transparent 50%),
-radial-gradient(ellipse 70% 60% at 5% 30%, var(--orange) 0%, transparent 55%),
-radial-gradient(ellipse 50% 60% at 60% 75%, var(--purple) 0%, transparent 50%),
-radial-gradient(ellipse 60% 40% at 30% 90%, var(--pink) 0%, transparent 45%),
-#D44020;
-}
-
-  /* Grain overlay */
-body::after {
-content: '';
-position: fixed; inset: 0;
-background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-    background-size: 180px 180px;
-    opacity: 0.18;
-    pointer-events: none;
-    z-index: 999;
-    mix-blend-mode: multiply;
+  body {
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 175px;
+    background:
+      radial-gradient(ellipse 60% 50% at 90% 5%, var(--yellow) 0%, transparent 50%),
+      radial-gradient(ellipse 70% 60% at 5% 30%, var(--orange) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 60% at 60% 75%, var(--purple) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 30% 90%, var(--pink) 0%, transparent 45%),
+      #D44020;
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
     background-size: 180px 180px; opacity: 0.18;
     pointer-events: none; z-index: 999; mix-blend-mode: multiply;
-}
+  }
 
-/* ── Header ── */
-.host-header {
-position: sticky; top: 0; z-index: 50;
-    background: rgba(43,63,255,0.95);
+  /* ── Header ── */
+  .host-header {
+    position: sticky; top: 0; z-index: 50;
     background: rgba(43,63,255,0.96);
-backdrop-filter: blur(8px);
-    padding: 12px 16px;
-    display: flex; align-items: center; justify-content: space-between;
+    backdrop-filter: blur(8px);
     padding: 10px 14px;
-}
-  .host-header h1 {
+  }
   .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
   .header-top h1 {
-font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 1.2rem;
+    font-family: 'Barlow Condensed', sans-serif;
     font-weight: 900; font-size: 1.1rem;
-color: white; text-transform: uppercase; letter-spacing: 1px;
-}
-.round-badge {
-font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 0.9rem;
+    color: white; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .round-badge {
+    font-family: 'Barlow Condensed', sans-serif;
     font-weight: 900; font-size: 0.85rem;
-background: white; color: var(--blue);
-    padding: 5px 14px; border-radius: 20px;
+    background: white; color: var(--blue);
     padding: 4px 12px; border-radius: 20px;
-text-transform: uppercase; letter-spacing: 1px;
-}
+    text-transform: uppercase; letter-spacing: 1px;
+  }
   .round-theme-badge {
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 0.75rem; font-weight: 700;
@@ -80,156 +63,97 @@ text-transform: uppercase; letter-spacing: 1px;
     text-transform: uppercase; letter-spacing: 1.5px;
   }
 
-/* ── Auto notice ── */
-.auto-notice {
-    background: rgba(245,200,66,0.25);
-    border: 1.5px solid rgba(245,200,66,0.6);
-    border-radius: 12px;
-    padding: 10px 14px; margin: 10px 14px 0;
-    font-size: 0.8rem; font-weight: 700;
-    color: white; text-transform: uppercase; letter-spacing: 0.5px;
+  /* ── Auto notice ── */
+  .auto-notice {
     background: rgba(245,200,66,0.2); border: 1.5px solid rgba(245,200,66,0.5);
     border-radius: 10px; padding: 9px 14px; margin: 10px 14px 0;
     font-size: 0.78rem; font-weight: 700; color: white;
     text-transform: uppercase; letter-spacing: 0.5px;
-}
+  }
 
-/* ── Waiting ── */
-@@ -87,211 +78,221 @@
-font-weight: 900; font-size: 2.5rem;
-color: var(--blue); text-transform: uppercase; line-height: 0.95; margin-bottom: 12px;
-}
-  .waiting-notice p { color: rgba(255,255,255,0.75); font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 1px; }
-  .submitted-pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 18px; }
+  /* ── Waiting ── */
+  .waiting-notice { text-align: center; padding: 60px 20px; }
+  .waiting-notice .big {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 2.5rem;
+    color: var(--blue); text-transform: uppercase; line-height: 0.95; margin-bottom: 12px;
+  }
   .waiting-notice p { color: rgba(255,255,255,0.7); font-weight: 700; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
   .submitted-pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; }
-.pill {
-    background: rgba(255,255,255,0.18);
-    border: 1.5px solid rgba(255,255,255,0.35);
-    border-radius: 20px; padding: 6px 14px;
-    font-size: 0.78rem; font-weight: 700; color: white;
+  .pill {
     background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3);
     border-radius: 20px; padding: 5px 12px;
     font-size: 0.75rem; font-weight: 700; color: white;
-text-transform: uppercase; letter-spacing: 0.5px;
-}
-.pill.done { background: var(--blue); border-color: var(--blue); }
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .pill.done { background: var(--blue); border-color: var(--blue); }
 
-/* ── Score strip ── */
-.score-strip { display: flex; gap: 8px; padding: 12px 14px 0; overflow-x: auto; }
-.score-chip {
-    background: rgba(255,255,255,0.15);
-    border: 1.5px solid rgba(255,255,255,0.3);
-    border-radius: 10px; padding: 6px 12px;
-    font-size: 0.78rem; font-weight: 700; color: white;
-    white-space: nowrap; flex-shrink: 0;
-    text-transform: uppercase; letter-spacing: 0.3px;
+  /* ── Score strip ── */
+  .score-strip { display: flex; gap: 8px; padding: 12px 14px 0; overflow-x: auto; }
+  .score-chip {
     background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3);
     border-radius: 10px; padding: 5px 10px;
     font-size: 0.75rem; font-weight: 700; color: white;
     white-space: nowrap; flex-shrink: 0; text-transform: uppercase;
-}
-.score-chip span { color: var(--blue); background: white; border-radius: 4px; padding: 0 4px; font-weight: 900; }
-
-/* ── Q nav ── */
-  .q-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px 8px; }
-  .q-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 6px; }
-.q-nav-btn {
-    width: 46px; height: 46px;
-    width: 44px; height: 44px;
-background: var(--blue); border: none; border-radius: 12px;
-color: white; font-size: 1.2rem; font-weight: 900;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.12s; font-family: 'Barlow Condensed', sans-serif;
-    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s;
-}
-.q-nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
-.q-nav-btn:not(:disabled):active { transform: scale(0.93); }
-
-.q-title { text-align: center; flex: 1; }
-  .q-number {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 2.8rem;
-    color: var(--blue); text-transform: uppercase; line-height: 1;
   }
-  .q-progress { font-size: 0.7rem; color: rgba(255,255,255,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .score-chip span { color: var(--blue); background: white; border-radius: 4px; padding: 0 4px; font-weight: 900; }
+
+  /* ── Q nav ── */
+  .q-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 6px; }
+  .q-nav-btn {
+    width: 44px; height: 44px;
+    background: var(--blue); border: none; border-radius: 12px;
+    color: white; font-size: 1.2rem; font-weight: 900;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s;
+  }
+  .q-nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+  .q-nav-btn:not(:disabled):active { transform: scale(0.93); }
+  .q-title { text-align: center; flex: 1; }
   .q-number { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 2.5rem; color: var(--blue); text-transform: uppercase; line-height: 1; }
   .q-progress { font-size: 0.68rem; color: rgba(255,255,255,0.55); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
-/* ── Q dots ── */
-  .q-dots { display: flex; justify-content: center; gap: 5px; padding: 5px 14px 14px; flex-wrap: wrap; }
+  /* ── Q dots ── */
   .q-dots { display: flex; justify-content: center; gap: 5px; padding: 5px 14px 12px; flex-wrap: wrap; }
-.q-dot {
-    width: 32px; height: 32px; border-radius: 8px;
-    background: rgba(255,255,255,0.15);
-    border: 1.5px solid rgba(255,255,255,0.3);
-    font-size: 0.72rem; font-weight: 900; color: rgba(255,255,255,0.6);
+  .q-dot {
     width: 30px; height: 30px; border-radius: 8px;
     background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.25);
     font-size: 0.7rem; font-weight: 900; color: rgba(255,255,255,0.5);
-cursor: pointer; display: flex; align-items: center; justify-content: center;
-    font-family: 'Barlow Condensed', sans-serif;
-    transition: all 0.12s;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
     font-family: 'Barlow Condensed', sans-serif; transition: all 0.12s;
-}
-.q-dot.active { background: var(--blue); color: white; border-color: var(--blue); }
-.q-dot.all-marked { background: rgba(255,255,255,0.9); color: var(--blue); border-color: white; }
-  .q-dot.partial { background: rgba(245,200,66,0.4); border-color: var(--yellow); color: white; }
+  }
+  .q-dot.active { background: var(--blue); color: white; border-color: var(--blue); }
+  .q-dot.all-marked { background: rgba(255,255,255,0.9); color: var(--blue); border-color: white; }
   .q-dot.partial { background: rgba(245,200,66,0.35); border-color: var(--yellow); color: white; }
 
-  /* ── Player cards ── */
   /* ── Player cards (normal rounds) ── */
-.players-for-q { padding: 0 14px; }
-.player-answer-card {
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(4px);
-    border: 1.5px solid rgba(255,255,255,0.25);
-    border-radius: 14px; padding: 12px 14px; margin-bottom: 10px;
-    display: flex; align-items: center; gap: 10px;
-    transition: all 0.15s;
+  .players-for-q { padding: 0 14px; }
+  .player-answer-card {
     background: rgba(255,255,255,0.12); backdrop-filter: blur(4px);
     border: 1.5px solid rgba(255,255,255,0.22);
     border-radius: 14px; padding: 11px 13px; margin-bottom: 9px;
     display: flex; align-items: center; gap: 10px; transition: all 0.15s;
-}
-.player-answer-card.marked-correct  { background: rgba(43,63,255,0.25); border-color: var(--blue); }
-.player-answer-card.marked-half     { background: rgba(245,200,66,0.25); border-color: var(--yellow); }
-  .player-answer-card.marked-incorrect{ background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); opacity: 0.6; }
+  }
+  .player-answer-card.marked-correct  { background: rgba(43,63,255,0.25); border-color: var(--blue); }
+  .player-answer-card.marked-half     { background: rgba(245,200,66,0.25); border-color: var(--yellow); }
   .player-answer-card.marked-incorrect{ background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); opacity: 0.5; }
 
-.player-info { flex: 1; min-width: 0; }
-  .p-name {
-    font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.55);
-    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;
-  }
-  .p-answer { font-size: 1.05rem; font-weight: 700; color: white; word-break: break-word; }
-  .p-answer.empty { color: rgba(255,255,255,0.35); font-style: italic; font-weight: 500; font-size: 0.85rem; }
+  .player-info { flex: 1; min-width: 0; }
   .p-quiz-name { font-size: 0.78rem; font-weight: 700; color: white; margin-bottom: 1px; }
   .p-real-name { font-size: 0.62rem; font-weight: 700; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
   .p-answer { font-size: 1rem; font-weight: 700; color: white; word-break: break-word; }
   .p-answer.empty { color: rgba(255,255,255,0.3); font-style: italic; font-weight: 500; font-size: 0.85rem; }
 
-/* ── Mark buttons ── */
-  .mark-buttons { display: flex; gap: 6px; flex-shrink: 0; }
+  /* ── Mark buttons ── */
   .mark-buttons { display: flex; gap: 5px; flex-shrink: 0; }
-.mark-btn {
-    width: 46px; height: 46px;
-    border: 2px solid rgba(255,255,255,0.3);
+  .mark-btn {
     width: 44px; height: 44px; border: 2px solid rgba(255,255,255,0.25);
-border-radius: 10px; font-size: 1rem; font-weight: 900;
-    cursor: pointer; background: rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.6);
-    transition: all 0.12s;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Barlow Condensed', sans-serif;
-    letter-spacing: 0;
+    border-radius: 10px; font-size: 1rem; font-weight: 900;
     cursor: pointer; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5);
     transition: all 0.12s; display: flex; align-items: center; justify-content: center;
-}
-.mark-btn:active { transform: scale(0.9); }
-.mark-btn.correct   { background: var(--blue); color: white; border-color: var(--blue); }
-.mark-btn.half      { background: var(--yellow); color: var(--blue); border-color: var(--yellow); }
-  .mark-btn.incorrect { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.1); }
+  }
+  .mark-btn:active { transform: scale(0.9); }
+  .mark-btn.correct   { background: var(--blue); color: white; border-color: var(--blue); }
+  .mark-btn.half      { background: var(--yellow); color: var(--blue); border-color: var(--yellow); }
   .mark-btn.incorrect { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.1); }
 
   /* ── Mr & Mrs marking ── */
@@ -285,79 +209,46 @@ border-radius: 10px; font-size: 1rem; font-weight: 900;
   .mrs-mark-btn.half      { background: var(--yellow); color: var(--blue); border-color: var(--yellow); }
   .mrs-mark-btn.incorrect { background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.08); }
 
-/* ── Bonus panel ── */
-.bonus-section {
-    margin: 16px 14px 4px;
-    background: rgba(43,63,255,0.3);
-    backdrop-filter: blur(6px);
-    border: 1.5px solid rgba(43,63,255,0.5);
-    border-radius: 14px; padding: 14px 16px;
+  /* ── Bonus panel ── */
+  .bonus-section {
     margin: 14px 14px 4px;
     background: rgba(43,63,255,0.28); backdrop-filter: blur(6px);
     border: 1.5px solid rgba(43,63,255,0.45); border-radius: 14px; padding: 12px 14px;
-}
-.bonus-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 1rem;
-    color: white; text-transform: uppercase;
-    letter-spacing: 1px; margin-bottom: 12px;
+  }
+  .bonus-title {
     font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.9rem;
     color: white; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;
-}
-  .bonus-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  }
   .bonus-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
-.bonus-row:last-child { margin-bottom: 0; }
-  .bonus-player-name { flex: 1; font-size: 0.82rem; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
-  .bonus-controls { display: flex; align-items: center; gap: 8px; }
+  .bonus-row:last-child { margin-bottom: 0; }
   .bonus-player-info { flex: 1; }
   .bonus-quiz-name { font-size: 0.8rem; font-weight: 700; color: white; text-transform: uppercase; }
   .bonus-real-name { font-size: 0.58rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
   .bonus-controls { display: flex; align-items: center; gap: 7px; }
-.bonus-btn {
-    width: 36px; height: 36px;
-    background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3);
-    border-radius: 8px; color: white; font-size: 1.1rem; font-weight: 900;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.12s;
+  .bonus-btn {
     width: 34px; height: 34px; background: rgba(255,255,255,0.12);
     border: 1.5px solid rgba(255,255,255,0.25); border-radius: 8px;
     color: white; font-size: 1rem; font-weight: 900;
     cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s;
-}
-  .bonus-btn:hover { background: rgba(255,255,255,0.25); }
+  }
   .bonus-btn:hover { background: rgba(255,255,255,0.22); }
-.bonus-btn:active { transform: scale(0.9); }
-.bonus-val {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 1.2rem;
-    color: var(--yellow); min-width: 36px; text-align: center;
+  .bonus-btn:active { transform: scale(0.9); }
+  .bonus-val {
     font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.1rem;
     color: var(--yellow); min-width: 34px; text-align: center;
-}
+  }
 
-/* ── Leaderboard ── */
-  .lb-section { padding: 16px 14px 0; }
+  /* ── Leaderboard ── */
   .lb-section { padding: 14px 14px 0; }
-.lb-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 1.3rem;
-    color: var(--blue); text-transform: uppercase;
-    letter-spacing: 1px; margin-bottom: 10px;
+  .lb-title {
     font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.2rem;
     color: var(--blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
-}
-.lb-row {
-display: flex; align-items: center;
-    background: rgba(255,255,255,0.12);
-    border: 1.5px solid rgba(255,255,255,0.2);
-    border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; gap: 10px;
+  }
+  .lb-row {
+    display: flex; align-items: center;
     background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.18);
     border-radius: 12px; padding: 9px 12px; margin-bottom: 7px; gap: 10px;
-}
-  .lb-row.first  { background: rgba(245,200,66,0.3); border-color: var(--yellow); }
-  .lb-rank { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; min-width: 26px; color: white; font-size: 1rem; }
-  .lb-name { flex: 1; font-weight: 700; font-size: 0.88rem; color: white; text-transform: uppercase; }
-  .lb-score { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; color: var(--blue); font-size: 1.2rem; background: white; border-radius: 6px; padding: 0 6px; }
+  }
   .lb-row.first { background: rgba(245,200,66,0.25); border-color: var(--yellow); }
   .lb-rank { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; min-width: 24px; color: white; font-size: 1rem; }
   .lb-player { flex: 1; min-width: 0; }
@@ -365,86 +256,52 @@ display: flex; align-items: center;
   .lb-real-name { font-size: 0.6rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px; }
   .lb-score { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; color: var(--blue); font-size: 1.1rem; background: white; border-radius: 6px; padding: 0 6px; }
 
-/* ── Action bar ── */
-.action-bar {
-position: fixed; bottom: 0; left: 0; right: 0;
-    background: rgba(43,63,255,0.97);
-    backdrop-filter: blur(8px);
-    padding: 12px 14px 18px;
-    display: flex; flex-direction: column; gap: 8px;
-    z-index: 50;
-  }
-  .progress-row {
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 0.72rem; color: rgba(255,255,255,0.6);
-    font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-  }
-  .progress-bar {
-    width: 100%; height: 4px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 2px; overflow: hidden; margin-top: 4px;
-  }
-  .progress-fill {
-    height: 100%; background: white;
-    transition: width 0.4s ease; border-radius: 2px;
+  /* ── Action bar ── */
+  .action-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
     background: rgba(43,63,255,0.97); backdrop-filter: blur(8px);
     padding: 10px 14px 16px; display: flex; flex-direction: column; gap: 8px; z-index: 50;
-}
+  }
   .progress-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.7rem; color: rgba(255,255,255,0.55); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
   .progress-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; overflow: hidden; margin-top: 4px; }
   .progress-fill { height: 100%; background: white; transition: width 0.4s ease; border-radius: 2px; }
-.action-buttons { display: flex; gap: 8px; }
-.btn-action {
-    flex: 1; padding: 15px;
-    border: none; border-radius: 12px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 1.1rem;
-    cursor: pointer; transition: all 0.12s;
-    text-transform: uppercase; letter-spacing: 1px;
+  .action-buttons { display: flex; gap: 8px; }
+  .btn-action {
     flex: 1; padding: 14px; border: none; border-radius: 12px;
     font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.05rem;
     cursor: pointer; transition: all 0.12s; text-transform: uppercase; letter-spacing: 1px;
-}
-.btn-action:active { transform: scale(0.97); }
-.btn-action:disabled { opacity: 0.3; cursor: not-allowed; }
-.btn-release { background: white; color: var(--blue); }
-  .btn-release:hover:not(:disabled) { background: #EEF0FF; }
-.btn-next { background: var(--yellow); color: var(--blue); }
+  }
+  .btn-action:active { transform: scale(0.97); }
+  .btn-action:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-release { background: white; color: var(--blue); }
+  .btn-next { background: var(--yellow); color: var(--blue); }
 
-/* ── Reset ── */
-  .reset-section { padding: 16px 14px 8px; text-align: center; }
+  /* ── Reset ── */
   .reset-section { padding: 14px 14px 6px; text-align: center; }
-.btn-reset {
-    background: transparent; border: 1.5px solid rgba(255,255,255,0.3);
-    color: rgba(255,255,255,0.5); padding: 9px 22px; border-radius: 10px;
-    font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 0.8rem; cursor: pointer;
-    text-transform: uppercase; letter-spacing: 0.5px;
+  .btn-reset {
     background: transparent; border: 1.5px solid rgba(255,255,255,0.25);
     color: rgba(255,255,255,0.4); padding: 8px 20px; border-radius: 10px;
     font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 0.78rem;
     cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;
-}
+  }
 
-/* ── Toast ── */
-.toast {
-    position: fixed; bottom: 160px; left: 50%;
+  /* ── Toast ── */
+  .toast {
     position: fixed; bottom: 158px; left: 50%;
-transform: translateX(-50%) translateY(100px);
-background: white; color: var(--blue);
-    padding: 12px 24px; border-radius: 30px;
+    transform: translateX(-50%) translateY(100px);
+    background: white; color: var(--blue);
     padding: 11px 22px; border-radius: 30px;
-font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 1rem;
+    font-family: 'Barlow Condensed', sans-serif;
     font-weight: 900; font-size: 0.95rem;
-text-transform: uppercase; letter-spacing: 1px;
-z-index: 1000; transition: transform 0.3s; white-space: nowrap;
-}
-@@ -301,12 +302,16 @@
+    text-transform: uppercase; letter-spacing: 1px;
+    z-index: 1000; transition: transform 0.3s; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
 <body>
 
 <div class="host-header">
-  <h1>Host Panel</h1>
-  <div class="round-badge" id="round-badge">Round 1</div>
   <div class="header-top">
     <h1>Host Panel</h1>
     <div class="round-badge" id="round-badge">Round 1</div>
@@ -456,20 +313,26 @@ z-index: 1000; transition: transform 0.3s; white-space: nowrap;
 
 <!-- Waiting -->
 <div id="waiting-section" style="display:none">
-<div class="waiting-notice">
-<div class="big">Waiting<br>for answers</div>
-@@ -315,6 +320,7 @@ <h1>Host Panel</h1>
-</div>
+  <div class="waiting-notice">
+    <div class="big">Waiting<br>for answers</div>
+    <p>Players still submitting</p>
+    <div class="submitted-pills" id="submitted-pills"></div>
+  </div>
 </div>
 
 <!-- Normal marking -->
 <div id="marking-section" style="display:none">
-<div class="score-strip" id="score-strip"></div>
-<div class="q-nav">
-@@ -327,6 +333,17 @@ <h1>Host Panel</h1>
-</div>
-<div class="q-dots" id="q-dots"></div>
-<div class="players-for-q" id="players-for-q"></div>
+  <div class="score-strip" id="score-strip"></div>
+  <div class="q-nav">
+    <button class="q-nav-btn" id="btn-prev-q" onclick="changeQuestion(-1)">&#8592;</button>
+    <div class="q-title">
+      <div class="q-number" id="q-number">Q1</div>
+      <div class="q-progress" id="q-progress">Question 1 of 10</div>
+    </div>
+    <button class="q-nav-btn" id="btn-next-q" onclick="changeQuestion(1)">&#8594;</button>
+  </div>
+  <div class="q-dots" id="q-dots"></div>
+  <div class="players-for-q" id="players-for-q"></div>
 </div>
 
 <!-- Mr & Mrs marking -->
@@ -481,29 +344,49 @@ z-index: 1000; transition: transform 0.3s; white-space: nowrap;
 
 <!-- Bonuses (shown in both modes) -->
 <div id="bonus-section-wrapper" style="display:none">
-<div class="bonus-section">
-<div class="bonus-title">Host Bonuses — Round <span id="bonus-round-label">1</span></div>
-<div id="bonus-rows"></div>
-@@ -356,6 +373,7 @@ <h1>Host Panel</h1>
+  <div class="bonus-section">
+    <div class="bonus-title">Host Bonuses — Round <span id="bonus-round-label">1</span></div>
+    <div id="bonus-rows"></div>
+  </div>
+</div>
+
+<div class="lb-section" id="lb-section" style="display:none">
+  <div class="lb-title">Standings</div>
+  <div id="lb-list"></div>
+</div>
+
+<div class="reset-section">
+  <button class="btn-reset" onclick="confirmReset()">Reset entire quiz</button>
+</div>
+
+<div class="action-bar">
+  <div>
+    <div class="progress-row">
+      <span id="progress-label">Questions marked: 0 / 10</span>
+      <span id="submitted-count-label">0 / 5 submitted</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div class="action-buttons" id="action-buttons"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 const PLAYERS = [
-{ id: 'mia',    name: 'Mia'    },
-{ id: 'james',  name: 'James'  },
-@@ -364,66 +382,130 @@ <h1>Host Panel</h1>
-{ id: 'tom',    name: 'Tom'    },
-{ id: 'jess',   name: 'Jess'   },
+  { id: 'mia',    name: 'Mia'    },
+  { id: 'james',  name: 'James'  },
+  { id: 'olivia', name: 'Olivia' },
+  { id: 'ciaran', name: 'Ciaran' },
+  { id: 'tom',    name: 'Tom'    },
+  { id: 'jess',   name: 'Jess'   },
 ];
-const AUTO_SCORE_ROUNDS = { 0: 'jess', 1: 'jess', 2: 'tom', 3: 'tom', 4: 'tom' };
 
 // Jess hosts 1,3,5 (idx 0,2,4) → Tom auto-scores
 // Tom hosts 2,4 (idx 1,3) → Jess auto-scores
 const AUTO_SCORE_ROUNDS = { 0: 'tom', 1: 'jess', 2: 'tom', 3: 'jess', 4: 'tom' };
 const AVG_PLAYERS = ['mia','james','olivia','ciaran'];
-const TOTAL_ROUNDS = 5;
-const QUESTIONS_PER_ROUND = 10;
 
 const ROUNDS = [
   { name: '9 to 5',                 questions: 10, isMrsMrs: false },
@@ -536,21 +419,20 @@ let scoresReleased = false;
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
 function showToast(msg) {
-const t = document.getElementById('toast');
-t.textContent = msg; t.classList.add('show');
-setTimeout(() => t.classList.remove('show'), 2500);
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
 function changeQuestion(delta) {
-const n = currentQ + delta;
-  if (n < 1 || n > QUESTIONS_PER_ROUND) return;
+  const n = currentQ + delta;
   const qCount = ROUNDS[currentRound].questions;
   if (n < 1 || n > qCount) return;
-currentQ = n; renderMarking();
+  currentQ = n; renderMarking();
 }
 function formatScore(n) {
-if (typeof n !== 'number') return '0';
-const r = Math.round(n * 10) / 10;
-return Number.isInteger(r) ? r.toString() : r.toFixed(1);
+  if (typeof n !== 'number') return '0';
+  const r = Math.round(n * 10) / 10;
+  return Number.isInteger(r) ? r.toString() : r.toFixed(1);
 }
 function getDisplayName(playerId) {
   const pd = playersData[playerId];
@@ -563,32 +445,28 @@ function getRealName(playerId) {
 // ── Main render ───────────────────────────────────────────────────────────────
 function render() {
   const round = ROUNDS[currentRound];
-const autoId = AUTO_SCORE_ROUNDS[currentRound];
-const active = PLAYERS.filter(p => p.id !== autoId);
+  const autoId = AUTO_SCORE_ROUNDS[currentRound];
+  const active = PLAYERS.filter(p => p.id !== autoId);
 
-document.getElementById('round-badge').textContent = `Round ${currentRound + 1}`;
+  document.getElementById('round-badge').textContent = `Round ${currentRound + 1}`;
   document.getElementById('round-theme-badge').textContent = round.name;
-document.getElementById('bonus-round-label').textContent = currentRound + 1;
+  document.getElementById('bonus-round-label').textContent = currentRound + 1;
 
   // Auto notice
-const notice = document.getElementById('auto-notice');
-if (autoId) {
-    const p = PLAYERS.find(x => x.id === autoId);
-notice.style.display = 'block';
-    notice.textContent = `${p.name} is hosting this round — auto-scored as average of Mia, James, Olivia & Ciaran`;
+  const notice = document.getElementById('auto-notice');
+  if (autoId) {
+    notice.style.display = 'block';
     notice.textContent = `${getRealName(autoId)} is hosting — auto-scored as average of Mia, James, Olivia & Ciaran`;
-} else { notice.style.display = 'none'; }
+  } else { notice.style.display = 'none'; }
 
-const submitted = active.filter(p => allAnswers[p.id] && Object.keys(allAnswers[p.id]).length > 0);
-const allIn = submitted.length === active.length;
-document.getElementById('submitted-count-label').textContent = `${submitted.length} / ${active.length} submitted`;
+  const submitted = active.filter(p => allAnswers[p.id] && Object.keys(allAnswers[p.id]).length > 0);
+  const allIn = submitted.length === active.length;
+  document.getElementById('submitted-count-label').textContent = `${submitted.length} / ${active.length} submitted`;
 
   // Progress
   const qCount = round.questions;
-let markedQs = 0;
-if (submitted.length > 0) {
-    for (let i = 1; i <= QUESTIONS_PER_ROUND; i++) {
-      if (submitted.every(p => marks[p.id]?.[`q${i}`] !== undefined)) markedQs++;
+  let markedQs = 0;
+  if (submitted.length > 0) {
     if (round.isMrsMrs) {
       // Count questions where all submitted players have their partner prediction marked
       for (let i = 1; i <= qCount; i++) {
@@ -598,12 +476,10 @@ if (submitted.length > 0) {
       for (let i = 1; i <= qCount; i++) {
         if (submitted.every(p => marks[p.id]?.[`q${i}`] !== undefined)) markedQs++;
       }
-}
-}
-  const pct = submitted.length > 0 ? Math.round((markedQs / QUESTIONS_PER_ROUND) * 100) : 0;
+    }
+  }
   const pct = submitted.length > 0 ? Math.round((markedQs / qCount) * 100) : 0;
-document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-label').textContent = `Questions marked: ${markedQs} / ${QUESTIONS_PER_ROUND}`;
+  document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-label').textContent = `Questions marked: ${markedQs} / ${qCount}`;
 
   // Section visibility
@@ -612,18 +488,13 @@ document.getElementById('progress-fill').style.width = pct + '%';
   const mrsMrkEl = document.getElementById('mrs-marking-section');
   const bonusWrapper = document.getElementById('bonus-section-wrapper');
 
-if (!allIn && !scoresReleased) {
-    document.getElementById('waiting-section').style.display = 'block';
-    document.getElementById('marking-section').style.display = 'none';
+  if (!allIn && !scoresReleased) {
     waitingEl.style.display = 'block';
     markingEl.style.display = 'none';
     mrsMrkEl.style.display = 'none';
     bonusWrapper.style.display = 'none';
-renderWaiting(active, submitted);
-} else {
-    document.getElementById('waiting-section').style.display = 'none';
-    document.getElementById('marking-section').style.display = 'block';
-    renderMarking();
+    renderWaiting(active, submitted);
+  } else {
     waitingEl.style.display = 'none';
     bonusWrapper.style.display = 'block';
     if (round.isMrsMrs) {
@@ -635,91 +506,91 @@ renderWaiting(active, submitted);
       mrsMrkEl.style.display = 'none';
       renderMarking();
     }
-renderBonuses(active);
-}
+    renderBonuses(active);
+  }
 
-@@ -432,6 +514,7 @@ <h1>Host Panel</h1>
-buildLeaderboard();
-}
+  if (scoresReleased) {
+    document.getElementById('lb-section').style.display = 'block';
+    buildLeaderboard();
+  }
 
   // Action buttons
-const btns = document.getElementById('action-buttons');
-if (scoresReleased) {
-const isLast = currentRound >= TOTAL_ROUNDS - 1;
-@@ -444,57 +527,60 @@ <h1>Host Panel</h1>
+  const btns = document.getElementById('action-buttons');
+  if (scoresReleased) {
+    const isLast = currentRound >= TOTAL_ROUNDS - 1;
+    btns.innerHTML = `<button class="btn-action btn-next" onclick="nextRound()" ${isLast ? 'disabled' : ''}>${isLast ? 'Quiz Complete' : 'Next Round'}</button>`;
+  } else {
+    btns.innerHTML = `<button class="btn-action btn-release" onclick="releaseScores()" ${!allIn ? 'disabled' : ''}>Release Scores</button>`;
+  }
+}
+
 function renderWaiting(active, submitted) {
-document.getElementById('submitted-pills').innerHTML = active.map(p => {
-const done = submitted.find(s => s.id === p.id);
-    const name = playersData[p.id]?.quizName || p.name;
-    return `<div class="pill ${done ? 'done' : ''}">${name} ${done ? '✓' : '...'}</div>`;
+  document.getElementById('submitted-pills').innerHTML = active.map(p => {
+    const done = submitted.find(s => s.id === p.id);
     const name = getDisplayName(p.id);
     return `<div class="pill ${done ? 'done' : ''}">${name}${done ? ' ✓' : ' ...'}</div>`;
-}).join('');
+  }).join('');
 }
 
 // ── Normal round marking ──────────────────────────────────────────────────────
 function renderMarking() {
-const autoId = AUTO_SCORE_ROUNDS[currentRound];
-const active = PLAYERS.filter(p => p.id !== autoId);
-const submitted = active.filter(p => allAnswers[p.id] && Object.keys(allAnswers[p.id]).length > 0);
+  const autoId = AUTO_SCORE_ROUNDS[currentRound];
+  const active = PLAYERS.filter(p => p.id !== autoId);
+  const submitted = active.filter(p => allAnswers[p.id] && Object.keys(allAnswers[p.id]).length > 0);
   const qCount = ROUNDS[currentRound].questions;
-const qKey = `q${currentQ}`;
+  const qKey = `q${currentQ}`;
 
-document.getElementById('q-number').textContent = `Q${currentQ}`;
-  document.getElementById('q-progress').textContent = `Question ${currentQ} of ${QUESTIONS_PER_ROUND}`;
+  document.getElementById('q-number').textContent = `Q${currentQ}`;
   document.getElementById('q-progress').textContent = `Question ${currentQ} of ${qCount}`;
-document.getElementById('btn-prev-q').disabled = currentQ === 1;
-  document.getElementById('btn-next-q').disabled = currentQ === QUESTIONS_PER_ROUND;
+  document.getElementById('btn-prev-q').disabled = currentQ === 1;
   document.getElementById('btn-next-q').disabled = currentQ === qCount;
 
   // Score strip
-document.getElementById('score-strip').innerHTML = active.map(p => {
-const score = Object.values(marks[p.id] || {}).reduce((s, v) => s + (v ?? 0), 0);
-const bonus = bonuses[p.id] ?? 0;
-    const name = playersData[p.id]?.quizName || p.name;
-    return `<div class="score-chip">${name}: <span>${formatScore(score + bonus)}</span></div>`;
+  document.getElementById('score-strip').innerHTML = active.map(p => {
+    const score = Object.values(marks[p.id] || {}).reduce((s, v) => s + (v ?? 0), 0);
+    const bonus = bonuses[p.id] ?? 0;
     return `<div class="score-chip">${getDisplayName(p.id)}: <span>${formatScore(score + bonus)}</span></div>`;
-}).join('');
+  }).join('');
 
   // Dots
-const dots = document.getElementById('q-dots');
-dots.innerHTML = '';
-  for (let i = 1; i <= QUESTIONS_PER_ROUND; i++) {
+  const dots = document.getElementById('q-dots');
+  dots.innerHTML = '';
   for (let i = 1; i <= qCount; i++) {
-const k = `q${i}`;
-const mc = submitted.filter(p => marks[p.id]?.[k] !== undefined).length;
-let cls = i === currentQ ? 'active' : submitted.length > 0 && mc === submitted.length ? 'all-marked' : mc > 0 ? 'partial' : '';
-const dot = document.createElement('div');
-    dot.className = `q-dot ${cls}`;
-    dot.textContent = i;
+    const k = `q${i}`;
+    const mc = submitted.filter(p => marks[p.id]?.[k] !== undefined).length;
+    let cls = i === currentQ ? 'active' : submitted.length > 0 && mc === submitted.length ? 'all-marked' : mc > 0 ? 'partial' : '';
+    const dot = document.createElement('div');
     dot.className = `q-dot ${cls}`; dot.textContent = i;
-dot.onclick = () => { currentQ = i; renderMarking(); };
-dots.appendChild(dot);
-}
+    dot.onclick = () => { currentQ = i; renderMarking(); };
+    dots.appendChild(dot);
+  }
 
   // Player cards
-const container = document.getElementById('players-for-q');
-container.innerHTML = '';
-active.forEach(p => {
-const answers = allAnswers[p.id] || {};
-const ans = answers[qKey] || '';
-const markVal = marks[p.id]?.[qKey];
-const isCorrect = markVal === 1, isHalf = markVal === 0.5, isWrong = markVal === 0;
-    const name = playersData[p.id]?.quizName || p.name;
-const hasSubmitted = Object.keys(answers).length > 0;
+  const container = document.getElementById('players-for-q');
+  container.innerHTML = '';
+  active.forEach(p => {
+    const answers = allAnswers[p.id] || {};
+    const ans = answers[qKey] || '';
+    const markVal = marks[p.id]?.[qKey];
+    const isCorrect = markVal === 1, isHalf = markVal === 0.5, isWrong = markVal === 0;
+    const hasSubmitted = Object.keys(answers).length > 0;
 
-const card = document.createElement('div');
-card.className = `player-answer-card ${isCorrect ? 'marked-correct' : isHalf ? 'marked-half' : isWrong ? 'marked-incorrect' : ''}`;
-card.innerHTML = `
-     <div class="player-info">
-        <div class="p-name">${name}</div>
+    const card = document.createElement('div');
+    card.className = `player-answer-card ${isCorrect ? 'marked-correct' : isHalf ? 'marked-half' : isWrong ? 'marked-incorrect' : ''}`;
+    card.innerHTML = `
+      <div class="player-info">
         <div class="p-quiz-name">${getDisplayName(p.id)}</div>
         <div class="p-real-name">${getRealName(p.id)}</div>
-       <div class="p-answer ${!ans ? 'empty' : ''}">${ans || (hasSubmitted ? 'No answer' : 'Not submitted')}</div>
-     </div>
-     <div class="mark-buttons">
-@@ -507,16 +593,119 @@ <h1>Host Panel</h1>
-});
+        <div class="p-answer ${!ans ? 'empty' : ''}">${ans || (hasSubmitted ? 'No answer' : 'Not submitted')}</div>
+      </div>
+      <div class="mark-buttons">
+        <button class="mark-btn ${isCorrect ? 'correct' : ''}" onclick="mark('${p.id}','${qKey}',1)">&#10003;</button>
+        <button class="mark-btn ${isHalf ? 'half' : ''}" onclick="mark('${p.id}','${qKey}',0.5)">&#189;</button>
+        <button class="mark-btn ${isWrong ? 'incorrect' : ''}" onclick="mark('${p.id}','${qKey}',0)">&#10007;</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
 }
 
 // ── Mr & Mrs marking ──────────────────────────────────────────────────────────
@@ -824,46 +695,34 @@ async function mark(playerId, qKey, value) {
 
 // ── Bonuses ───────────────────────────────────────────────────────────────────
 function renderBonuses(active) {
-const rows = document.getElementById('bonus-rows');
-rows.innerHTML = '';
-active.forEach(p => {
-    const name = playersData[p.id]?.quizName || p.name;
-const val = bonuses[p.id] ?? 0;
-const row = document.createElement('div');
-row.className = 'bonus-row';
-row.innerHTML = `
-      <div class="bonus-player-name">${name}</div>
+  const rows = document.getElementById('bonus-rows');
+  rows.innerHTML = '';
+  active.forEach(p => {
+    const val = bonuses[p.id] ?? 0;
+    const row = document.createElement('div');
+    row.className = 'bonus-row';
+    row.innerHTML = `
       <div class="bonus-player-info">
         <div class="bonus-quiz-name">${getDisplayName(p.id)}</div>
         <div class="bonus-real-name">${getRealName(p.id)}</div>
       </div>
-     <div class="bonus-controls">
-       <button class="bonus-btn" onclick="adjustBonus('${p.id}',-0.5)">&#8722;</button>
-       <div class="bonus-val" id="bv-${p.id}">${formatScore(val)}</div>
-@@ -527,52 +716,77 @@ <h1>Host Panel</h1>
-});
-}
-
-async function mark(playerId, qKey, value) {
-  if (!marks[playerId]) marks[playerId] = {};
-  if (marks[playerId][qKey] === value) {
-    delete marks[playerId][qKey];
-    await db.ref(`rounds/round${currentRound}/marks/${playerId}/${qKey}`).remove();
-  } else {
-    marks[playerId][qKey] = value;
-    await db.ref(`rounds/round${currentRound}/marks/${playerId}/${qKey}`).set(value);
-  }
-  renderMarking();
+      <div class="bonus-controls">
+        <button class="bonus-btn" onclick="adjustBonus('${p.id}',-0.5)">&#8722;</button>
+        <div class="bonus-val" id="bv-${p.id}">${formatScore(val)}</div>
+        <button class="bonus-btn" onclick="adjustBonus('${p.id}',0.5)">+</button>
+      </div>
+    `;
+    rows.appendChild(row);
+  });
 }
 
 async function adjustBonus(playerId, delta) {
-const cur = bonuses[playerId] ?? 0;
-const nv = Math.max(0, Math.round((cur + delta) * 10) / 10);
-bonuses[playerId] = nv;
-await db.ref(`rounds/round${currentRound}/bonuses/${playerId}`).set(nv);
-const el = document.getElementById(`bv-${playerId}`);
-if (el) el.textContent = formatScore(nv);
-  renderMarking();
+  const cur = bonuses[playerId] ?? 0;
+  const nv = Math.max(0, Math.round((cur + delta) * 10) / 10);
+  bonuses[playerId] = nv;
+  await db.ref(`rounds/round${currentRound}/bonuses/${playerId}`).set(nv);
+  const el = document.getElementById(`bv-${playerId}`);
+  if (el) el.textContent = formatScore(nv);
   // Update score strips
   const autoId = AUTO_SCORE_ROUNDS[currentRound];
   const active = PLAYERS.filter(p => p.id !== autoId);
@@ -883,13 +742,12 @@ if (el) el.textContent = formatScore(nv);
 
 // ── Release scores ────────────────────────────────────────────────────────────
 async function releaseScores() {
-const autoId = AUTO_SCORE_ROUNDS[currentRound];
-const active = PLAYERS.filter(p => p.id !== autoId);
+  const autoId = AUTO_SCORE_ROUNDS[currentRound];
+  const active = PLAYERS.filter(p => p.id !== autoId);
   const round = ROUNDS[currentRound];
-const scores = {};
+  const scores = {};
 
-for (const p of active) {
-    const score = Object.values(marks[p.id] || {}).reduce((s, v) => s + (v ?? 0), 0);
+  for (const p of active) {
     let score;
     if (round.isMrsMrs) {
       // Only mark partner predictions
@@ -900,16 +758,14 @@ for (const p of active) {
     } else {
       score = Object.values(marks[p.id] || {}).reduce((s, v) => s + (v ?? 0), 0);
     }
-const bonus = bonuses[p.id] ?? 0;
-    scores[p.id] = Math.round((score + bonus) * 10) / 10;
+    const bonus = bonuses[p.id] ?? 0;
     // Store base score and bonus separately; cumulative computed from both
-await db.ref(`players/${p.id}/scores/round${currentRound}`).set(score);
-if (bonus > 0) await db.ref(`players/${p.id}/bonuses/round${currentRound}`).set(bonus);
+    await db.ref(`players/${p.id}/scores/round${currentRound}`).set(score);
+    if (bonus > 0) await db.ref(`players/${p.id}/bonuses/round${currentRound}`).set(bonus);
     scores[p.id] = Math.round((score + bonus) * 10) / 10;
-}
+  }
 
-if (autoId) {
-    const avgBase = AVG_PLAYERS.map(id => Object.values(marks[id] || {}).reduce((s, v) => s + (v ?? 0), 0));
+  if (autoId) {
     // Auto-score = average of the 4 core players' BASE scores
     const avgBase = AVG_PLAYERS.map(id => {
       if (round.isMrsMrs) {
@@ -918,45 +774,47 @@ if (autoId) {
       }
       return Object.values(marks[id] || {}).reduce((s, v) => s + (v ?? 0), 0);
     });
-const autoScore = Math.round((avgBase.reduce((a, b) => a + b, 0) / avgBase.length) * 10) / 10;
+    const autoScore = Math.round((avgBase.reduce((a, b) => a + b, 0) / avgBase.length) * 10) / 10;
+    await db.ref(`players/${autoId}/scores/round${currentRound}`).set(autoScore);
     scores[autoId] = autoScore;
-await db.ref(`players/${autoId}/scores/round${currentRound}`).set(autoScore);
-    scores[autoId] = autoScore;
-}
+  }
 
-await db.ref(`rounds/round${currentRound}/scores`).set(scores);
-await db.ref('game').update({ phase: 'scores', currentRound });
-scoresReleased = true;
-showToast('Scores released');
-render();
+  await db.ref(`rounds/round${currentRound}/scores`).set(scores);
+  await db.ref('game').update({ phase: 'scores', currentRound });
+  scoresReleased = true;
+  showToast('Scores released');
+  render();
 }
 
 // ── Next round ────────────────────────────────────────────────────────────────
 async function nextRound() {
-if (currentRound >= TOTAL_ROUNDS - 1) return;
-currentRound++; currentQ = 1; scoresReleased = false;
-@@ -582,6 +796,7 @@ <h1>Host Panel</h1>
-render();
+  if (currentRound >= TOTAL_ROUNDS - 1) return;
+  currentRound++; currentQ = 1; scoresReleased = false;
+  allAnswers = {}; marks = {}; bonuses = {};
+  document.getElementById('lb-section').style.display = 'none';
+  await db.ref('game').update({ phase: 'answering', currentRound });
+  render();
 }
 
 // ── Leaderboard ───────────────────────────────────────────────────────────────
 async function buildLeaderboard() {
-const snap = await db.ref('players').get();
-const data = snap.val() || {};
-@@ -592,19 +807,27 @@ <h1>Host Panel</h1>
-total += pData.scores?.[`round${i}`] ?? 0;
-total += pData.bonuses?.[`round${i}`] ?? 0;
-}
-    return { name: pData.quizName || p.name, total };
+  const snap = await db.ref('players').get();
+  const data = snap.val() || {};
+  const rows = PLAYERS.map(p => {
+    const pData = data[p.id] || {};
+    let total = 0;
+    for (let i = 0; i <= currentRound; i++) {
+      total += pData.scores?.[`round${i}`] ?? 0;
+      total += pData.bonuses?.[`round${i}`] ?? 0;
+    }
     return { id: p.id, name: pData.quizName || p.name, realName: p.name, total };
-}).sort((a, b) => b.total - a.total);
+  }).sort((a, b) => b.total - a.total);
 
-const list = document.getElementById('lb-list');
-list.innerHTML = '';
-rows.forEach((row, i) => {
-const div = document.createElement('div');
-div.className = `lb-row ${i === 0 ? 'first' : ''}`;
-    div.innerHTML = `<div class="lb-rank">${i + 1}.</div><div class="lb-name">${row.name}</div><div class="lb-score">${formatScore(row.total)}</div>`;
+  const list = document.getElementById('lb-list');
+  list.innerHTML = '';
+  rows.forEach((row, i) => {
+    const div = document.createElement('div');
+    div.className = `lb-row ${i === 0 ? 'first' : ''}`;
     div.innerHTML = `
       <div class="lb-rank">${i + 1}.</div>
       <div class="lb-player">
@@ -965,29 +823,43 @@ div.className = `lb-row ${i === 0 ? 'first' : ''}`;
       </div>
       <div class="lb-score">${formatScore(row.total)}</div>
     `;
-list.appendChild(div);
-});
+    list.appendChild(div);
+  });
 }
 
 // ── Reset ─────────────────────────────────────────────────────────────────────
 async function confirmReset() {
-if (!confirm('Wipe all players, answers and scores?')) return;
-await db.ref('/').set(null);
-@@ -615,12 +838,16 @@ <h1>Host Panel</h1>
-render(); showToast('Quiz reset');
+  if (!confirm('Wipe all players, answers and scores?')) return;
+  await db.ref('/').set(null);
+  await db.ref('game').set({ phase: 'answering', currentRound: 0 });
+  currentRound = 0; currentQ = 1; scoresReleased = false;
+  allAnswers = {}; marks = {}; bonuses = {}; playersData = {};
+  document.getElementById('lb-section').style.display = 'none';
+  render(); showToast('Quiz reset');
 }
 
 // ── Firebase listeners ────────────────────────────────────────────────────────
 function init() {
-db.ref('game').on('value', snap => {
-const game = snap.val();
-if (!game) { db.ref('game').set({ phase: 'answering', currentRound: 0 }); return; }
-const nr = game.currentRound ?? 0;
-    if (nr !== currentRound) { currentRound = nr; currentQ = 1; allAnswers = {}; marks = {}; bonuses = {}; scoresReleased = false; }
+  db.ref('game').on('value', snap => {
+    const game = snap.val();
+    if (!game) { db.ref('game').set({ phase: 'answering', currentRound: 0 }); return; }
+    const nr = game.currentRound ?? 0;
     if (nr !== currentRound) {
       currentRound = nr; currentQ = 1;
       allAnswers = {}; marks = {}; bonuses = {}; scoresReleased = false;
     }
-scoresReleased = (game.phase ?? 'answering') === 'scores';
-render();
-});
+    scoresReleased = (game.phase ?? 'answering') === 'scores';
+    render();
+  });
+  db.ref('rounds').on('value', snap => {
+    const data = snap.val() || {};
+    const rd = data[`round${currentRound}`] || {};
+    allAnswers = rd.answers || {}; marks = rd.marks || {}; bonuses = rd.bonuses || {};
+    render();
+  });
+  db.ref('players').on('value', snap => { playersData = snap.val() || {}; render(); });
+}
+init();
+</script>
+</body>
+</html>
