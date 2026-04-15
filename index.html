@@ -389,13 +389,15 @@
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* ── Mr & Mrs hearts decoration ── */
-  .mrs-hearts-banner {
-    text-align: center;
-    font-size: 1.6rem;
-    padding: 10px 0 4px;
-    letter-spacing: 6px;
+  /* ── Mr & Mrs floating hearts ── */
+  #hearts-canvas {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.8s ease;
   }
+  #hearts-canvas.visible { opacity: 1; }
 </style>
 </head>
 <body>
@@ -417,15 +419,8 @@
     <div class="page-title" style="font-size:2.4rem" id="answer-page-title">Round 1</div>
     <div class="round-name-header" id="answer-round-name">9 to 5</div>
   </div>
-  <div class="round-banner">
-    <div class="round-banner-top">
-      <span class="round-label" id="round-label">Round 1</span>
-      <span class="player-chip" id="player-chip">You</span>
-    </div>
-    <div class="round-theme-name" id="round-theme-name">9 to 5</div>
-  </div>
-  <div id="mrs-hearts-top" class="mrs-hearts-banner" style="display:none">
-    ♥ ♥ ♥
+  <div class="player-chip-standalone" id="player-chip-wrapper" style="padding: 0 16px 12px;">
+    <span id="player-chip" style="display:inline-block; background:var(--blue); color:white; border-radius:20px; padding:5px 14px; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;"></span>
   </div>
   <div class="answers-container" id="answers-container"></div>
   <div class="submit-bar">
@@ -472,6 +467,9 @@
     </div>
   </div>
 </div>
+
+<!-- ══ FLOATING HEARTS CANVAS (Mr & Mrs) ══ -->
+<svg id="hearts-canvas" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice"></svg>
 
 <div class="toast" id="toast"></div>
 
@@ -525,6 +523,9 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
   window.scrollTo(0, 0);
+  if (id !== 'answers') {
+    document.getElementById('hearts-canvas').classList.remove('visible');
+  }
 }
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -539,9 +540,80 @@ function formatScore(n) {
 
 // ── Apply round background ────────────────────────────────────────────────────
 function applyRoundBg(screenEl, roundIndex) {
-  // Remove all round-bg classes
   for (let i = 0; i < TOTAL_ROUNDS; i++) screenEl.classList.remove(`round-bg-${i}`);
   screenEl.classList.add(`round-bg-${roundIndex}`);
+  // Show/hide floating hearts for Mr & Mrs round
+  if (ROUNDS[roundIndex].isMrsMrs) {
+    generateHearts();
+    document.getElementById('hearts-canvas').classList.add('visible');
+  } else {
+    document.getElementById('hearts-canvas').classList.remove('visible');
+  }
+}
+
+// ── Generate ethereal floating hearts ────────────────────────────────────────
+function generateHearts() {
+  const svg = document.getElementById('hearts-canvas');
+  const W = window.innerWidth, H = window.innerHeight * 2.5; // tall so scrolling reveals more
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('width', W); svg.setAttribute('height', H);
+  svg.innerHTML = '';
+
+  // Define gradients
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  const gradients = [
+    { id: 'hg1', c1: '#FFB3C6', c2: '#FF2D8B' },
+    { id: 'hg2', c1: '#FFD6E0', c2: '#E8437A' },
+    { id: 'hg3', c1: '#F5C842', c2: '#F06030' },
+    { id: 'hg4', c1: '#FFB3D9', c2: '#8B2D8B' },
+    { id: 'hg5', c1: '#FFFFFF',  c2: '#FFB3C6' },
+    { id: 'hg6', c1: '#FF8FAB', c2: '#C8213A' },
+  ];
+  gradients.forEach(g => {
+    const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+    grad.setAttribute('id', g.id);
+    grad.setAttribute('cx', '35%'); grad.setAttribute('cy', '35%');
+    grad.setAttribute('r', '65%');
+    const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', g.c1);
+    const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', g.c2);
+    grad.appendChild(s1); grad.appendChild(s2);
+    defs.appendChild(grad);
+  });
+  svg.appendChild(defs);
+
+  // Heart path (normalised 0-100 viewBox)
+  const heartPath = 'M50,30 C50,20 35,10 25,20 C15,30 15,45 25,55 L50,80 L75,55 C85,45 85,30 75,20 C65,10 50,20 50,30 Z';
+
+  const count = 28;
+  for (let i = 0; i < count; i++) {
+    const x = Math.random() * W;
+    const y = Math.random() * H;
+    const size = 18 + Math.random() * 70; // varied sizes
+    const opacity = 0.08 + Math.random() * 0.22;
+    const gradId = gradients[Math.floor(Math.random() * gradients.length)].id;
+    const rotate = (Math.random() - 0.5) * 40;
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('transform',
+      `translate(${x},${y}) rotate(${rotate}) scale(${size/100})`
+    );
+
+    // Blur filter for ethereal glow on bigger hearts
+    if (size > 50) {
+      const blur = 1.5 + Math.random() * 3;
+      g.setAttribute('filter', `blur(${blur}px)`);
+    }
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', heartPath);
+    path.setAttribute('fill', `url(#${gradId})`);
+    path.setAttribute('opacity', opacity);
+
+    g.appendChild(path);
+    svg.appendChild(g);
+  }
 }
 
 // ── Name grid ─────────────────────────────────────────────────────────────────
@@ -581,6 +653,9 @@ async function confirmName() {
   if (!input) { showToast('Enter a name first'); return; }
   myPlayerId = pendingPlayerId; myQuizName = input;
   closeModal();
+  // Persist identity so page reloads don't lose state
+  localStorage.setItem('lnc_playerId', myPlayerId);
+  localStorage.setItem('lnc_quizName', myQuizName);
   await db.ref(`players/${myPlayerId}`).set({
     realName: PLAYERS.find(p => p.id === myPlayerId).name,
     quizName: myQuizName, claimed: true, scores: {}, bonuses: {}
@@ -615,8 +690,6 @@ function buildAnswerScreen(roundIndex) {
 
   document.getElementById('answer-page-title').textContent = `Round ${roundIndex + 1}`;
   document.getElementById('answer-round-name').textContent = round.name;
-  document.getElementById('round-label').textContent = `Round ${roundIndex + 1}`;
-  document.getElementById('round-theme-name').textContent = round.name;
   document.getElementById('player-chip').textContent = myQuizName || 'You';
 
   // Mr & Mrs hearts
@@ -709,8 +782,11 @@ function listenForScores() {
     const game = snap.val(); if (!game) return;
     const round = game.currentRound ?? 0;
     const phase = game.phase ?? 'answering';
-    if (phase === 'scores' && round === currentRound) loadAndShowScores(round);
-    else if (phase === 'answering' && round > currentRound) enterRound(round);
+    if (phase === 'scores' && round === currentRound) {
+      loadAndShowScores(round);
+    } else if (phase === 'answering' && round > currentRound) {
+      enterRound(round);
+    }
   });
 }
 
@@ -772,8 +848,48 @@ function computeCumulative(playersData, upToRound, playerId) {
   return Math.round(total * 10) / 10;
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Init — restores session from localStorage on reload ───────────────────────
 async function init() {
+  // Try to restore identity from previous session
+  const savedId   = localStorage.getItem('lnc_playerId');
+  const savedName = localStorage.getItem('lnc_quizName');
+
+  if (savedId && savedName) {
+    myPlayerId  = savedId;
+    myQuizName  = savedName;
+
+    // Verify they're still in Firebase (quiz hasn't been reset)
+    const playerSnap = await db.ref(`players/${myPlayerId}`).get();
+    if (!playerSnap.val()?.claimed) {
+      // Quiz was reset — clear saved session and show name select
+      localStorage.removeItem('lnc_playerId');
+      localStorage.removeItem('lnc_quizName');
+      myPlayerId = null; myQuizName = null;
+    } else {
+      // Restore to correct screen based on current game state
+      const gameSnap = await db.ref('game').get();
+      const game = gameSnap.val() || {};
+      currentRound = game.currentRound ?? 0;
+      const phase  = game.phase ?? 'answering';
+
+      if (phase === 'scores') {
+        loadAndShowScores(currentRound);
+      } else {
+        // Check if already submitted this round
+        const ansSnap = await db.ref(`rounds/round${currentRound}/answers/${myPlayerId}`).get();
+        if (ansSnap.val()) {
+          hasSubmitted = true;
+          document.getElementById('waiting-title').innerHTML = `Answers<br>Locked In`;
+          document.getElementById('waiting-msg').textContent = `Waiting for the host to mark`;
+          showScreen('waiting');
+        } else {
+          enterRound(currentRound);
+        }
+      }
+    }
+  }
+
+  // Always watch players list (for name grid + taken status)
   db.ref('players').on('value', snap => {
     const data = snap.val() || {};
     const takenMap = {}, quizNames = {};
@@ -783,8 +899,10 @@ async function init() {
     });
     if (!myPlayerId) buildGrid(takenMap, quizNames);
   });
+
   listenForScores();
 }
+
 init();
 </script>
 </body>
