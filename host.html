@@ -831,7 +831,8 @@ async function buildLeaderboard() {
 async function confirmReset() {
   if (!confirm('Wipe all players, answers and scores?')) return;
   await db.ref('/').set(null);
-  await db.ref('game').set({ phase: 'answering', currentRound: 0 });
+  // Write reset signal AFTER wipe so players detect it
+  await db.ref('game').set({ phase: 'answering', currentRound: 0, resetAt: Date.now() });
   currentRound = 0; currentQ = 1; scoresReleased = false;
   allAnswers = {}; marks = {}; bonuses = {}; playersData = {};
   document.getElementById('lb-section').style.display = 'none';
