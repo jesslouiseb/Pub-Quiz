@@ -2,56 +2,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Left No Crumbs Pub Quiz</title>
+@@ -13,13 +14,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@500;700&display=swap');
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-config.js"></script>
-
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@500;700&display=swap');
-
-  :root {
+:root {
+    --blue:   #2B3FFF;
+    --white:  #FFFFFF;
+    --pink:   #E8437A;
+    --orange: #F06030;
+    --yellow: #F5C842;
+    --purple: #8B2D8B;
+    --red:    #C8213A;
     --blue: #2B3FFF;
-  }
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+@@ -30,7 +25,7 @@
+overflow-x: hidden;
+}
 
-  body {
-    font-family: 'Barlow', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
+  /* ══ GRAIN OVERLAY ══ */
   /* ── Grain overlay ── */
-  body::after {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-    background-size: 180px 180px;
-    opacity: 0.18;
-    pointer-events: none;
-    z-index: 999;
-    mix-blend-mode: multiply;
-  }
+body::after {
+content: '';
+position: fixed; inset: 0;
+@@ -45,9 +40,7 @@
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
 
-  .screen { display: none; min-height: 100vh; }
-  .screen.active { display: block; }
+  /* ══ BACKGROUNDS — each screen gets its own gradient ══ */
 
+  /* Select: warm pink-orange-red swirl */
   /* ── Per-screen backgrounds ── */
-  #screen-select {
-    background:
-      radial-gradient(ellipse 70% 50% at 20% 10%, #F5C842 0%, transparent 60%),
-      radial-gradient(ellipse 60% 70% at 85% 30%, #E8437A 0%, transparent 55%),
-      radial-gradient(ellipse 80% 60% at 50% 80%, #C8213A 0%, transparent 60%),
-      radial-gradient(ellipse 50% 50% at 10% 70%, #F06030 0%, transparent 50%),
-      #D63060;
-  }
+#screen-select {
+background:
+radial-gradient(ellipse 70% 50% at 20% 10%, #F5C842 0%, transparent 60%),
+@@ -56,124 +49,116 @@
+radial-gradient(ellipse 50% 50% at 10% 70%, #F06030 0%, transparent 50%),
+#D63060;
+}
+
+  /* Answers: purple-pink-orange */
+  #screen-answers {
   /* Round backgrounds — set dynamically via JS class */
   .round-bg-0 { /* 9 to 5 — warm yellow-orange */
-    background:
+background:
+      radial-gradient(ellipse 60% 50% at 80% 5%, #F06030 0%, transparent 55%),
+      radial-gradient(ellipse 70% 60% at 15% 40%, #8B2D8B 0%, transparent 55%),
+      radial-gradient(ellipse 50% 70% at 60% 85%, #E8437A 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 90% 70%, #F5C842 0%, transparent 40%),
+      #C0285A;
       radial-gradient(ellipse 80% 50% at 10% 10%, #F5C842 0%, transparent 55%),
       radial-gradient(ellipse 60% 60% at 80% 40%, #F06030 0%, transparent 50%),
       radial-gradient(ellipse 50% 60% at 40% 85%, #E8437A 0%, transparent 50%),
@@ -86,37 +86,64 @@
       radial-gradient(ellipse 70% 60% at 50% 80%, #8B1A4A 0%, transparent 60%),
       radial-gradient(ellipse 50% 40% at 5% 80%, #F06030 0%, transparent 45%),
       #C01848 !important;
-  }
-  #screen-waiting {
-    background:
-      radial-gradient(ellipse 80% 50% at 50% 0%, #F06030 0%, transparent 50%),
-      radial-gradient(ellipse 50% 60% at 10% 60%, #E8437A 0%, transparent 50%),
-      radial-gradient(ellipse 60% 50% at 80% 80%, #8B2D8B 0%, transparent 50%),
-      #8B1A3A;
-  }
-  #screen-scores {
-    background:
-      radial-gradient(ellipse 70% 50% at 80% 10%, #F5C842 0%, transparent 55%),
-      radial-gradient(ellipse 60% 60% at 20% 35%, #E8437A 0%, transparent 50%),
-      radial-gradient(ellipse 60% 50% at 50% 85%, #8B2D8B 0%, transparent 55%),
-      #B82060;
-  }
+}
 
+  /* Waiting: deep red-purple */
+#screen-waiting {
+background:
+radial-gradient(ellipse 80% 50% at 50% 0%, #F06030 0%, transparent 50%),
+radial-gradient(ellipse 50% 60% at 10% 60%, #E8437A 0%, transparent 50%),
+radial-gradient(ellipse 60% 50% at 80% 80%, #8B2D8B 0%, transparent 50%),
+#8B1A3A;
+}
+
+  /* Scores: yellow-pink-purple */
+#screen-scores {
+background:
+radial-gradient(ellipse 70% 50% at 80% 10%, #F5C842 0%, transparent 55%),
+radial-gradient(ellipse 60% 60% at 20% 35%, #E8437A 0%, transparent 50%),
+radial-gradient(ellipse 60% 50% at 50% 85%, #8B2D8B 0%, transparent 55%),
+      radial-gradient(ellipse 40% 40% at 5% 10%, #F06030 0%, transparent 40%),
+#B82060;
+}
+
+  /* ══ HEADER ══ */
+  .page-header {
+    padding: 36px 20px 24px;
+  }
   /* ── Header ── */
   .page-header { padding: 36px 20px 20px; }
-  .site-label {
-    font-family: 'Barlow Condensed', sans-serif;
+.site-label {
+font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 6px;
     font-size: 0.75rem; font-weight: 700;
     letter-spacing: 3px; text-transform: uppercase;
     color: rgba(255,255,255,0.55); margin-bottom: 4px;
-  }
-  .page-title {
-    font-family: 'Barlow Condensed', sans-serif;
+}
+.page-title {
+font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 3.8rem;
+    line-height: 0.9;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: -1px;
     font-weight: 900; font-size: 3.6rem;
     line-height: 0.9; color: var(--blue);
     text-transform: uppercase; letter-spacing: -1px;
-  }
-  .page-subtitle {
+}
+.page-subtitle {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.75);
+    margin-top: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     font-size: 0.82rem; font-weight: 700;
     color: rgba(255,255,255,0.7); margin-top: 10px;
     text-transform: uppercase; letter-spacing: 1.5px;
@@ -127,102 +154,170 @@
     color: rgba(255,255,255,0.7);
     text-transform: uppercase; letter-spacing: 2px;
     margin-top: 6px;
-  }
+}
 
+  /* ══ NAME GRID ══ */
   /* ── Name grid ── */
-  .name-grid {
+.name-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px 30px;
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 10px; padding: 0 16px 30px;
+}
+.name-tile {
+background: rgba(255,255,255,0.15);
+backdrop-filter: blur(4px);
+border: 2px solid rgba(255,255,255,0.35);
+    border-radius: 14px;
+    padding: 22px 14px 18px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.18s;
   }
-  .name-tile {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(4px);
-    border: 2px solid rgba(255,255,255,0.35);
+  .name-tile:not(.taken):hover {
+    background: rgba(255,255,255,0.28);
+    border-color: var(--blue);
+    transform: translateY(-3px);
     border-radius: 14px; padding: 20px 14px 16px;
     text-align: center; cursor: pointer; transition: all 0.18s;
+}
+  .name-tile:not(.taken):active {
+    transform: translateY(1px);
+    background: rgba(43,63,255,0.25);
   }
+  .name-tile.taken {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .name-tile .tile-name {
   .name-tile:not(.taken):hover { background: rgba(255,255,255,0.28); border-color: var(--blue); transform: translateY(-3px); }
   .name-tile:not(.taken):active { transform: translateY(1px); background: rgba(43,63,255,0.25); }
   .name-tile.taken { opacity: 0.35; cursor: not-allowed; }
   .tile-real-name {
-    font-family: 'Barlow Condensed', sans-serif;
+font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+  .name-tile .quiz-name {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.8);
+    margin-top: 6px;
+    font-weight: 700;
+    font-style: italic;
     font-weight: 900; font-size: 1.8rem;
     color: var(--blue); text-transform: uppercase; line-height: 1;
   }
   .tile-quiz-name {
     font-size: 0.72rem; color: rgba(255,255,255,0.8);
     margin-top: 5px; font-weight: 700; font-style: italic;
-  }
-  .taken-label {
+}
+.taken-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+    opacity: 0.6;
     font-size: 0.6rem; font-weight: 700; color: rgba(255,255,255,0.5);
     text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
-  }
+}
 
+  /* ══ MODAL ══ */
   /* ── Modal ── */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(139,45,139,0.6);
-    backdrop-filter: blur(8px);
-    z-index: 100; align-items: center; justify-content: center; padding: 20px;
+.modal-overlay {
+display: none; position: fixed; inset: 0;
+background: rgba(139,45,139,0.6);
+@@ -182,72 +167,70 @@
+}
+.modal-overlay.open { display: flex; }
+.modal {
+    background: white;
+    border-radius: 20px;
+    padding: 32px 24px;
+    width: 100%; max-width: 360px;
+    text-align: center;
+    animation: popIn 0.2s ease;
   }
-  .modal-overlay.open { display: flex; }
-  .modal {
+  @keyframes popIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
     background: white; border-radius: 20px;
     padding: 32px 24px; width: 100%; max-width: 360px;
     text-align: center; animation: popIn 0.2s ease;
-  }
+}
   @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  .modal h2 {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 2rem;
+.modal h2 {
+font-family: 'Barlow Condensed', sans-serif;
+font-weight: 900; font-size: 2rem;
+    color: var(--blue); text-transform: uppercase;
+    margin-bottom: 6px;
     color: var(--blue); text-transform: uppercase; margin-bottom: 4px;
-  }
-  .modal p { color: #888; font-size: 0.88rem; margin-bottom: 20px; font-weight: 500; }
-  .modal input {
-    width: 100%; background: #F5F0FF;
-    border: 2px solid #E0D0FF; border-radius: 12px;
-    padding: 14px 16px; color: #1A1A2E;
-    font-family: 'Barlow', sans-serif; font-size: 1rem; font-weight: 700;
+}
+.modal p { color: #888; font-size: 0.88rem; margin-bottom: 20px; font-weight: 500; }
+.modal input {
+width: 100%; background: #F5F0FF;
+border: 2px solid #E0D0FF; border-radius: 12px;
+padding: 14px 16px; color: #1A1A2E;
+font-family: 'Barlow', sans-serif; font-size: 1rem; font-weight: 700;
+    outline: none; text-align: center;
+    transition: border-color 0.2s;
     outline: none; text-align: center; transition: border-color 0.2s;
-  }
-  .modal input:focus { border-color: var(--blue); }
-  .modal input::placeholder { color: #BBA8DD; font-weight: 500; }
-  .modal-buttons { display: flex; gap: 10px; margin-top: 14px; }
-  .btn {
+}
+.modal input:focus { border-color: var(--blue); }
+.modal input::placeholder { color: #BBA8DD; font-weight: 500; }
+.modal-buttons { display: flex; gap: 10px; margin-top: 14px; }
+.btn {
+    flex: 1; padding: 14px;
+    border: none; border-radius: 12px;
     flex: 1; padding: 14px; border: none; border-radius: 12px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.1rem; font-weight: 700;
-    cursor: pointer; transition: all 0.15s;
-    letter-spacing: 0.5px; text-transform: uppercase;
-  }
-  .btn:active { transform: scale(0.96); }
-  .btn-primary { background: var(--blue); color: white; }
-  .btn-ghost { background: #F0EEF8; color: #666; }
+font-family: 'Barlow Condensed', sans-serif;
+font-size: 1.1rem; font-weight: 700;
+cursor: pointer; transition: all 0.15s;
+letter-spacing: 0.5px; text-transform: uppercase;
+}
+.btn:active { transform: scale(0.96); }
+.btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: #1830DD; }
+.btn-ghost { background: #F0EEF8; color: #666; }
 
+  /* ══ ROUND BANNER ══ */
   /* ── Round banner ── */
-  .round-banner {
+.round-banner {
+    margin: 0 16px 16px;
     margin: 0 16px 14px;
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(4px);
-    border: 2px solid rgba(255,255,255,0.3);
+background: rgba(255,255,255,0.15);
+backdrop-filter: blur(4px);
+border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 14px;
+    padding: 14px 18px;
     border-radius: 14px; padding: 12px 16px;
   }
   .round-banner-top {
-    display: flex; align-items: center; justify-content: space-between;
+display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 4px;
-  }
-  .round-label {
-    font-family: 'Barlow Condensed', sans-serif;
+}
+.round-label {
+font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 2rem;
     font-weight: 900; font-size: 1.6rem;
-    color: var(--blue); text-transform: uppercase;
-  }
-  .player-chip {
-    background: var(--blue); color: white;
+color: var(--blue); text-transform: uppercase;
+}
+.player-chip {
+background: var(--blue); color: white;
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 0.8rem; font-weight: 700;
     border-radius: 20px; padding: 5px 12px;
     font-size: 0.75rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.5px;
-    max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
+text-transform: uppercase; letter-spacing: 0.5px;
+max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
   .round-theme-name {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700; font-size: 0.9rem;
@@ -230,24 +325,35 @@
     text-transform: uppercase; letter-spacing: 1.5px;
   }
 
+  /* ══ ANSWERS ══ */
   /* ── Answers ── */
-  .answers-container { padding: 0 16px 8px; }
-  .answer-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .q-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 1rem;
-    color: var(--blue); min-width: 28px;
-  }
-  .answer-input {
+.answers-container { padding: 0 16px 8px; }
+.answer-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.q-label {
+@@ -256,27 +239,35 @@
+color: var(--blue); min-width: 28px;
+}
+.answer-input {
+    flex: 1;
+    background: rgba(255,255,255,0.9);
+    border: 2px solid rgba(255,255,255,0.5);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #1A1A2E;
     flex: 1; background: rgba(255,255,255,0.9);
     border: 2px solid rgba(255,255,255,0.5); border-radius: 10px;
     padding: 12px 14px; color: #1A1A2E;
-    font-family: 'Barlow', sans-serif; font-size: 0.95rem; font-weight: 700;
-    outline: none; transition: all 0.15s;
+font-family: 'Barlow', sans-serif; font-size: 0.95rem; font-weight: 700;
+outline: none; transition: all 0.15s;
+}
+  .answer-input:focus {
+    background: white;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(43,63,255,0.2);
   }
   .answer-input:focus { background: white; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(43,63,255,0.2); }
-  .answer-input:disabled { opacity: 0.5; }
-  .answer-input::placeholder { color: #AAA; font-weight: 500; }
+.answer-input:disabled { opacity: 0.5; }
+.answer-input::placeholder { color: #AAA; font-weight: 500; }
 
   /* ── Mr & Mrs section headers ── */
   .mrs-section-header {
@@ -264,61 +370,65 @@
     color: white; font-size: 0.9rem;
   }
 
-  .submit-bar {
-    position: sticky; bottom: 0;
-    padding: 14px 16px 20px;
+.submit-bar {
+position: sticky; bottom: 0;
+padding: 14px 16px 20px;
+    background: linear-gradient(to top, rgba(192,40,90,0.95) 70%, transparent);
     background: linear-gradient(to top, rgba(140,25,60,0.95) 70%, transparent);
-  }
-  .btn-submit {
-    width: 100%; padding: 18px;
-    background: var(--blue); color: white;
-    border: none; border-radius: 14px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.4rem; font-weight: 900;
-    letter-spacing: 1px; text-transform: uppercase;
-    cursor: pointer; transition: all 0.15s;
-  }
-  .btn-submit:hover { background: #1830DD; transform: translateY(-1px); }
-  .btn-submit:active { transform: translateY(1px); }
-  .btn-submit:disabled { background: rgba(255,255,255,0.25); color: rgba(255,255,255,0.5); cursor: not-allowed; transform: none; }
+}
+.btn-submit {
+width: 100%; padding: 18px;
+@@ -291,7 +282,7 @@
+.btn-submit:active { transform: translateY(1px); }
+.btn-submit:disabled { background: rgba(255,255,255,0.25); color: rgba(255,255,255,0.5); cursor: not-allowed; transform: none; }
 
+  /* ══ WAITING ══ */
   /* ── Waiting ── */
-  .waiting-screen {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    min-height: 80vh; padding: 40px 24px; text-align: center;
-  }
-  .wait-ring {
-    width: 80px; height: 80px;
-    border: 5px solid rgba(255,255,255,0.2);
-    border-top-color: var(--blue);
-    border-radius: 50%;
+.waiting-screen {
+display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+@@ -302,8 +293,7 @@
+border: 5px solid rgba(255,255,255,0.2);
+border-top-color: var(--blue);
+border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 32px;
     animation: spin 1s linear infinite; margin-bottom: 32px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .waiting-screen h2 {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 2.8rem;
-    color: var(--blue); text-transform: uppercase;
-    line-height: 0.95; margin-bottom: 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.waiting-screen h2 {
+@@ -312,35 +302,34 @@
+color: var(--blue); text-transform: uppercase;
+line-height: 0.95; margin-bottom: 12px;
+}
+  .waiting-screen p {
+    color: rgba(255,255,255,0.75);
+    font-size: 0.9rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
   }
   .waiting-screen p { color: rgba(255,255,255,0.75); font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
+  /* ══ SCORES ══ */
   /* ── Scores ── */
-  .score-screen { padding: 0 16px 40px; }
-  .your-score-card {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(6px);
-    border: 2px solid rgba(255,255,255,0.3);
+.score-screen { padding: 0 16px 40px; }
+
+.your-score-card {
+background: rgba(255,255,255,0.15);
+backdrop-filter: blur(6px);
+border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 18px;
+    padding: 30px 20px;
+    text-align: center;
+    margin-bottom: 20px;
     border-radius: 18px; padding: 30px 20px;
     text-align: center; margin-bottom: 20px;
-  }
-  .score-round-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.72rem; font-weight: 700;
-    letter-spacing: 3px; text-transform: uppercase;
-    color: rgba(255,255,255,0.6);
-  }
+}
+.score-round-label {
+font-family: 'Barlow Condensed', sans-serif;
+font-size: 0.72rem; font-weight: 700;
+letter-spacing: 3px; text-transform: uppercase;
+color: rgba(255,255,255,0.6);
+}
   .score-round-theme {
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 1rem; font-weight: 700;
@@ -326,163 +436,149 @@
     text-transform: uppercase; letter-spacing: 1px;
     margin-bottom: 4px;
   }
-  .big-score {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 7rem;
+.big-score {
+font-family: 'Barlow Condensed', sans-serif;
+font-weight: 900; font-size: 7rem;
+    color: var(--blue); line-height: 1;
+    text-transform: uppercase; margin: 4px 0;
     color: var(--blue); line-height: 1; margin: 4px 0;
-  }
-  .cumulative-score {
-    font-size: 0.82rem; font-weight: 700;
-    color: rgba(255,255,255,0.7);
-    text-transform: uppercase; letter-spacing: 1px;
-  }
-  .cumulative-score strong { color: white; }
-
-  .lb-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 1.5rem;
-    color: var(--blue); text-transform: uppercase;
-    margin-bottom: 12px; letter-spacing: 0.5px;
-  }
-  .lb-row {
-    display: flex; align-items: center;
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(4px);
-    border: 1.5px solid rgba(255,255,255,0.25);
+}
+.cumulative-score {
+font-size: 0.82rem; font-weight: 700;
+@@ -360,27 +349,20 @@
+background: rgba(255,255,255,0.12);
+backdrop-filter: blur(4px);
+border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 8px;
     border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
-    animation: slideIn 0.35s ease both;
+animation: slideIn 0.35s ease both;
+}
+  .lb-row.me {
+    background: rgba(43,63,255,0.25);
+    border-color: var(--blue);
+  }
+  @keyframes slideIn {
+    from { transform: translateX(-18px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
   }
   .lb-row.me { background: rgba(43,63,255,0.25); border-color: var(--blue); }
   @keyframes slideIn { from { transform: translateX(-18px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-  .lb-rank {
-    font-family: 'Barlow Condensed', sans-serif;
+.lb-rank {
+font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 1.2rem;
+    color: white; min-width: 36px;
     font-weight: 900; font-size: 1.2rem; color: white; min-width: 36px;
-  }
+}
+  .lb-name {
+    flex: 1; font-weight: 700; font-size: 0.9rem;
+    color: white; text-transform: uppercase; letter-spacing: 0.3px;
   .lb-player {
     flex: 1; min-width: 0;
-  }
+}
   .lb-quiz-name { font-weight: 700; font-size: 0.9rem; color: white; text-transform: uppercase; letter-spacing: 0.3px; }
   .lb-real-name { font-size: 0.65rem; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px; }
-  .lb-scores { text-align: right; }
-  .lb-round-pts { font-size: 0.7rem; color: rgba(255,255,255,0.55); font-weight: 700; text-transform: uppercase; }
-  .lb-total-pts {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900; font-size: 1.3rem; color: var(--blue);
-  }
-  .auto-tag {
-    font-size: 0.58rem; background: rgba(255,255,255,0.2);
+.lb-scores { text-align: right; }
+.lb-round-pts { font-size: 0.7rem; color: rgba(255,255,255,0.55); font-weight: 700; text-transform: uppercase; }
+.lb-total-pts {
+@@ -393,14 +375,8 @@
+font-weight: 700; margin-left: 4px; vertical-align: middle;
+text-transform: uppercase; letter-spacing: 0.5px;
+}
+  .bonus-tag {
+    font-size: 0.58rem; background: var(--blue);
     color: white; border-radius: 4px; padding: 1px 5px;
     font-weight: 700; margin-left: 4px; vertical-align: middle;
     text-transform: uppercase; letter-spacing: 0.5px;
   }
 
+  /* ══ TOAST ══ */
   /* ── Toast ── */
-  .toast {
-    position: fixed; bottom: 30px; left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--blue); color: white;
-    padding: 13px 26px; border-radius: 30px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700; font-size: 1rem;
-    letter-spacing: 1px; text-transform: uppercase;
+.toast {
+position: fixed; bottom: 30px; left: 50%;
+transform: translateX(-50%) translateY(100px);
+@@ -409,10 +385,17 @@
+font-family: 'Barlow Condensed', sans-serif;
+font-weight: 700; font-size: 1rem;
+letter-spacing: 1px; text-transform: uppercase;
+    z-index: 1000; transition: transform 0.3s ease;
+    white-space: nowrap;
     z-index: 1000; transition: transform 0.3s ease; white-space: nowrap;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* ── Mr & Mrs floating hearts ── */
-  #hearts-canvas {
-    position: fixed; inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    opacity: 0;
-    transition: opacity 0.8s ease;
+  /* ── Mr & Mrs hearts decoration ── */
+  .mrs-hearts-banner {
+    text-align: center;
+    font-size: 1.6rem;
+    padding: 10px 0 4px;
+    letter-spacing: 6px;
   }
-  #hearts-canvas.visible { opacity: 1; }
 </style>
 </head>
 <body>
-
-<!-- ══ NAME SELECT ══ -->
-<div id="screen-select" class="screen active">
-  <div class="page-header">
-    <div class="site-label">Left No Crumbs</div>
-    <div class="page-title">Pub<br>Quiz</div>
-    <div class="page-subtitle">Select your name to join</div>
-  </div>
-  <div class="name-grid" id="name-grid"></div>
-</div>
+@@ -429,13 +412,20 @@
 
 <!-- ══ ANSWERS ══ -->
 <div id="screen-answers" class="screen">
+  <div class="page-header" style="padding-bottom:14px">
   <div class="page-header" style="padding-bottom:12px">
-    <div class="site-label">Left No Crumbs</div>
+<div class="site-label">Left No Crumbs</div>
+    <div class="page-title" style="font-size:2.6rem" id="round-title">Round 1</div>
     <div class="page-title" style="font-size:2.4rem" id="answer-page-title">Round 1</div>
     <div class="round-name-header" id="answer-round-name">9 to 5</div>
-  </div>
-  <div class="player-chip-standalone" id="player-chip-wrapper" style="padding: 0 16px 12px;">
-    <span id="player-chip" style="display:inline-block; background:var(--blue); color:white; border-radius:20px; padding:5px 14px; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;"></span>
-  </div>
-  <div class="answers-container" id="answers-container"></div>
-  <div class="submit-bar">
-    <button class="btn-submit" id="submit-btn" onclick="submitAnswers()">Submit Answers</button>
-  </div>
 </div>
-
-<!-- ══ WAITING ══ -->
-<div id="screen-waiting" class="screen">
-  <div class="waiting-screen">
-    <div class="wait-ring"></div>
-    <h2 id="waiting-title">Answers<br>Locked In</h2>
-    <p id="waiting-msg">Waiting for the host to mark</p>
+<div class="round-banner">
+    <span class="round-label" id="round-label">Round 1</span>
+    <span class="player-chip" id="player-chip">You</span>
+    <div class="round-banner-top">
+      <span class="round-label" id="round-label">Round 1</span>
+      <span class="player-chip" id="player-chip">You</span>
+    </div>
+    <div class="round-theme-name" id="round-theme-name">9 to 5</div>
   </div>
+  <div id="mrs-hearts-top" class="mrs-hearts-banner" style="display:none">
+    ♥ ♥ ♥
 </div>
-
-<!-- ══ SCORES ══ -->
-<div id="screen-scores" class="screen">
-  <div class="page-header">
-    <div class="site-label">Left No Crumbs</div>
-    <div class="page-title">Results</div>
-  </div>
-  <div class="score-screen">
-    <div class="your-score-card">
+<div class="answers-container" id="answers-container"></div>
+<div class="submit-bar">
+@@ -460,9 +450,10 @@ <h2 id="waiting-title">Answers<br>Locked In</h2>
+</div>
+<div class="score-screen">
+<div class="your-score-card">
+      <div class="score-round-label" id="score-round-label">Round 1 Score</div>
       <div class="score-round-label" id="score-round-label">Round 1</div>
       <div class="score-round-theme" id="score-round-theme">9 to 5</div>
-      <div class="big-score" id="your-round-score">0</div>
+<div class="big-score" id="your-round-score">0</div>
+      <div class="cumulative-score">Total: <strong id="your-total-score">0</strong> pts</div>
       <div class="cumulative-score">Running total: <strong id="your-total-score">0</strong> pts</div>
-    </div>
-    <div class="lb-title">Leaderboard</div>
-    <div id="leaderboard-list"></div>
-  </div>
 </div>
-
-<!-- ══ MODAL ══ -->
+<div class="lb-title">Leaderboard</div>
+<div id="leaderboard-list"></div>
+@@ -473,7 +464,7 @@ <h2 id="waiting-title">Answers<br>Locked In</h2>
 <div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <h2 id="modal-title">Your Quiz Name</h2>
+<div class="modal">
+<h2 id="modal-title">Your Quiz Name</h2>
+    <p id="modal-sub">Make it legendary</p>
     <p>Make it legendary</p>
-    <input type="text" id="quiz-name-input" placeholder="e.g. The Quiz Khalifa" maxlength="30" />
-    <div class="modal-buttons">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmName()">Join</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ FLOATING HEARTS CANVAS (Mr & Mrs) ══ -->
-<svg id="hearts-canvas" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice"></svg>
-
+<input type="text" id="quiz-name-input" placeholder="e.g. The Quiz Khalifa" maxlength="30" />
+<div class="modal-buttons">
+<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+@@ -485,6 +476,7 @@ <h2 id="modal-title">Your Quiz Name</h2>
 <div class="toast" id="toast"></div>
 
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 const PLAYERS = [
-  { id: 'mia',    name: 'Mia'    },
-  { id: 'james',  name: 'James'  },
-  { id: 'olivia', name: 'Olivia' },
-  { id: 'ciaran', name: 'Ciaran' },
-  { id: 'tom',    name: 'Tom'    },
-  { id: 'jess',   name: 'Jess'   },
+{ id: 'mia',    name: 'Mia'    },
+{ id: 'james',  name: 'James'  },
+@@ -493,24 +485,66 @@ <h2 id="modal-title">Your Quiz Name</h2>
+{ id: 'tom',    name: 'Tom'    },
+{ id: 'jess',   name: 'Jess'   },
 ];
+const AUTO_SCORE_ROUNDS = { 0: 'jess', 1: 'jess', 2: 'tom', 3: 'tom', 4: 'tom' };
+const TOTAL_ROUNDS = 5;
+const QUESTIONS_PER_ROUND = 10;
 
 // Jess hosts 1,3,5 (index 0,2,4) → Tom auto-scores those
 // Tom hosts 2,4 (index 1,3) → Jess auto-scores those
@@ -520,17 +616,15 @@ let currentRound = 0, hasSubmitted = false;
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
+document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0,0);
   window.scrollTo(0, 0);
-  if (id !== 'answers') {
-    document.getElementById('hearts-canvas').classList.remove('visible');
-  }
 }
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+const t = document.getElementById('toast');
+t.textContent = msg; t.classList.add('show');
+setTimeout(() => t.classList.remove('show'), 2500);
 }
 function formatScore(n) {
   if (typeof n !== 'number') return '0';
@@ -540,163 +634,75 @@ function formatScore(n) {
 
 // ── Apply round background ────────────────────────────────────────────────────
 function applyRoundBg(screenEl, roundIndex) {
+  // Remove all round-bg classes
   for (let i = 0; i < TOTAL_ROUNDS; i++) screenEl.classList.remove(`round-bg-${i}`);
   screenEl.classList.add(`round-bg-${roundIndex}`);
-  // Show/hide floating hearts for Mr & Mrs round
-  if (ROUNDS[roundIndex].isMrsMrs) {
-    generateHearts();
-    document.getElementById('hearts-canvas').classList.add('visible');
-  } else {
-    document.getElementById('hearts-canvas').classList.remove('visible');
-  }
-}
-
-// ── Generate ethereal floating hearts ────────────────────────────────────────
-function generateHearts() {
-  const svg = document.getElementById('hearts-canvas');
-  const W = window.innerWidth, H = window.innerHeight * 2.5; // tall so scrolling reveals more
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('width', W); svg.setAttribute('height', H);
-  svg.innerHTML = '';
-
-  // Define gradients
-  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  const gradients = [
-    { id: 'hg1', c1: '#FFB3C6', c2: '#FF2D8B' },
-    { id: 'hg2', c1: '#FFD6E0', c2: '#E8437A' },
-    { id: 'hg3', c1: '#F5C842', c2: '#F06030' },
-    { id: 'hg4', c1: '#FFB3D9', c2: '#8B2D8B' },
-    { id: 'hg5', c1: '#FFFFFF',  c2: '#FFB3C6' },
-    { id: 'hg6', c1: '#FF8FAB', c2: '#C8213A' },
-  ];
-  gradients.forEach(g => {
-    const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-    grad.setAttribute('id', g.id);
-    grad.setAttribute('cx', '35%'); grad.setAttribute('cy', '35%');
-    grad.setAttribute('r', '65%');
-    const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', g.c1);
-    const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', g.c2);
-    grad.appendChild(s1); grad.appendChild(s2);
-    defs.appendChild(grad);
-  });
-  svg.appendChild(defs);
-
-  // Heart path (normalised 0-100 viewBox)
-  const heartPath = 'M50,30 C50,20 35,10 25,20 C15,30 15,45 25,55 L50,80 L75,55 C85,45 85,30 75,20 C65,10 50,20 50,30 Z';
-
-  const count = 28;
-  for (let i = 0; i < count; i++) {
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-    const size = 18 + Math.random() * 70; // varied sizes
-    const opacity = 0.08 + Math.random() * 0.22;
-    const gradId = gradients[Math.floor(Math.random() * gradients.length)].id;
-    const rotate = (Math.random() - 0.5) * 40;
-
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.setAttribute('transform',
-      `translate(${x},${y}) rotate(${rotate}) scale(${size/100})`
-    );
-
-    // Blur filter for ethereal glow on bigger hearts
-    if (size > 50) {
-      const blur = 1.5 + Math.random() * 3;
-      g.setAttribute('filter', `blur(${blur}px)`);
-    }
-
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', heartPath);
-    path.setAttribute('fill', `url(#${gradId})`);
-    path.setAttribute('opacity', opacity);
-
-    g.appendChild(path);
-    svg.appendChild(g);
-  }
 }
 
 // ── Name grid ─────────────────────────────────────────────────────────────────
 function buildGrid(takenMap, quizNames) {
-  const grid = document.getElementById('name-grid');
-  grid.innerHTML = '';
-  PLAYERS.forEach(p => {
-    const taken = takenMap[p.id];
-    const div = document.createElement('div');
-    div.className = 'name-tile' + (taken ? ' taken' : '');
-    div.innerHTML = `
+const grid = document.getElementById('name-grid');
+grid.innerHTML = '';
+@@ -519,15 +553,16 @@ <h2 id="modal-title">Your Quiz Name</h2>
+const div = document.createElement('div');
+div.className = 'name-tile' + (taken ? ' taken' : '');
+div.innerHTML = `
+      <div class="tile-name">${p.name}</div>
+      ${quizNames[p.id] ? `<div class="quiz-name">"${quizNames[p.id]}"</div>` : ''}
       <div class="tile-real-name">${p.name}</div>
       ${quizNames[p.id] ? `<div class="tile-quiz-name">"${quizNames[p.id]}"</div>` : ''}
-      ${taken ? '<div class="taken-label">Taken</div>' : ''}
-    `;
-    if (!taken) div.onclick = () => openModal(p.id, p.name);
-    grid.appendChild(div);
-  });
+     ${taken ? '<div class="taken-label">Taken</div>' : ''}
+   `;
+if (!taken) div.onclick = () => openModal(p.id, p.name);
+grid.appendChild(div);
+});
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 function openModal(playerId, playerName) {
-  pendingPlayerId = playerId;
-  document.getElementById('modal-title').textContent = `Hey, ${playerName}`;
-  document.getElementById('quiz-name-input').value = '';
-  document.getElementById('modal-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('quiz-name-input').focus(), 100);
-}
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  pendingPlayerId = null;
-}
-document.getElementById('quiz-name-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmName(); });
-
-async function confirmName() {
-  const input = document.getElementById('quiz-name-input').value.trim();
-  if (!input) { showToast('Enter a name first'); return; }
-  myPlayerId = pendingPlayerId; myQuizName = input;
-  closeModal();
-  // Persist identity so page reloads don't lose state
-  localStorage.setItem('lnc_playerId', myPlayerId);
-  localStorage.setItem('lnc_quizName', myQuizName);
-  await db.ref(`players/${myPlayerId}`).set({
-    realName: PLAYERS.find(p => p.id === myPlayerId).name,
-    quizName: myQuizName, claimed: true, scores: {}, bonuses: {}
-  });
-  const snap = await db.ref('game').get();
-  currentRound = (snap.val() || {}).currentRound ?? 0;
-  enterRound(currentRound);
+pendingPlayerId = playerId;
+document.getElementById('modal-title').textContent = `Hey, ${playerName}`;
+@@ -555,10 +590,15 @@ <h2 id="modal-title">Your Quiz Name</h2>
+enterRound(currentRound);
 }
 
 // ── Enter round ───────────────────────────────────────────────────────────────
 function enterRound(roundIndex) {
-  currentRound = roundIndex; hasSubmitted = false;
+currentRound = roundIndex; hasSubmitted = false;
+  if (AUTO_SCORE_ROUNDS[roundIndex] === myPlayerId) {
+    document.getElementById('waiting-title').textContent = `Hosting\nRound ${roundIndex + 1}`;
   const round = ROUNDS[roundIndex];
   const autoId = AUTO_SCORE_ROUNDS[roundIndex];
 
   if (autoId === myPlayerId) {
     // This player is hosting
     document.getElementById('waiting-title').innerHTML = `Hosting<br>Round ${roundIndex + 1}`;
-    document.getElementById('waiting-msg').textContent = `You will receive the average score automatically`;
-    showScreen('waiting');
-  } else {
-    buildAnswerScreen(roundIndex);
-    showScreen('answers');
-  }
+document.getElementById('waiting-msg').textContent = `You will receive the average score automatically`;
+showScreen('waiting');
+} else {
+@@ -567,38 +607,103 @@ <h2 id="modal-title">Your Quiz Name</h2>
+}
 }
 
 // ── Answer screen ─────────────────────────────────────────────────────────────
 function buildAnswerScreen(roundIndex) {
+  document.getElementById('round-title').textContent = `Round ${roundIndex + 1}`;
   const round = ROUNDS[roundIndex];
   const screenEl = document.getElementById('screen-answers');
   applyRoundBg(screenEl, roundIndex);
 
   document.getElementById('answer-page-title').textContent = `Round ${roundIndex + 1}`;
   document.getElementById('answer-round-name').textContent = round.name;
-  document.getElementById('player-chip').textContent = myQuizName || 'You';
+document.getElementById('round-label').textContent = `Round ${roundIndex + 1}`;
+  document.getElementById('round-theme-name').textContent = round.name;
+document.getElementById('player-chip').textContent = myQuizName || 'You';
 
   // Mr & Mrs hearts
   document.getElementById('mrs-hearts-top').style.display = round.isMrsMrs ? 'block' : 'none';
 
-  const container = document.getElementById('answers-container');
-  container.innerHTML = '';
+const container = document.getElementById('answers-container');
+container.innerHTML = '';
+  for (let i = 1; i <= QUESTIONS_PER_ROUND; i++) {
 
   if (round.isMrsMrs) {
     buildMrsMrsAnswers(container, roundIndex);
@@ -725,8 +731,9 @@ function buildMrsMrsAnswers(container, roundIndex) {
   container.appendChild(h1);
 
   for (let i = 1; i <= round.questions; i++) {
-    const row = document.createElement('div');
-    row.className = 'answer-row';
+const row = document.createElement('div');
+row.className = 'answer-row';
+    row.innerHTML = `<span class="q-label">Q${i}</span><input class="answer-input" id="ans-${i}" type="text" placeholder="Your answer" autocomplete="off" />`;
     row.innerHTML = `<span class="q-label">Q${i}</span><input class="answer-input" id="ans-me-${i}" type="text" placeholder="My answer" autocomplete="off" />`;
     container.appendChild(row);
   }
@@ -741,15 +748,20 @@ function buildMrsMrsAnswers(container, roundIndex) {
     const row = document.createElement('div');
     row.className = 'answer-row';
     row.innerHTML = `<span class="q-label">Q${i}</span><input class="answer-input" id="ans-partner-${i}" type="text" placeholder="${partnerName || 'Partner'}'s answer" autocomplete="off" />`;
-    container.appendChild(row);
-  }
+container.appendChild(row);
+}
+  document.getElementById('submit-btn').disabled = false;
+  document.getElementById('submit-btn').textContent = 'Submit Answers';
 }
 
 // ── Submit ────────────────────────────────────────────────────────────────────
 async function submitAnswers() {
-  if (hasSubmitted) return;
+if (hasSubmitted) return;
   const round = ROUNDS[currentRound];
-  const answers = {};
+const answers = {};
+  for (let i = 1; i <= QUESTIONS_PER_ROUND; i++) {
+    answers[`q${i}`] = document.getElementById(`ans-${i}`).value.trim() || '';
+    document.getElementById(`ans-${i}`).disabled = true;
 
   if (round.isMrsMrs) {
     for (let i = 1; i <= round.questions; i++) {
@@ -765,157 +777,85 @@ async function submitAnswers() {
       answers[`q${i}`] = document.getElementById(`ans-${i}`).value.trim() || '';
       document.getElementById(`ans-${i}`).disabled = true;
     }
-  }
+}
 
-  hasSubmitted = true;
-  document.getElementById('submit-btn').disabled = true;
-  document.getElementById('submit-btn').textContent = 'Submitted';
-  await db.ref(`rounds/round${currentRound}/answers/${myPlayerId}`).set(answers);
+hasSubmitted = true;
+document.getElementById('submit-btn').disabled = true;
+document.getElementById('submit-btn').textContent = 'Submitted';
+await db.ref(`rounds/round${currentRound}/answers/${myPlayerId}`).set(answers);
+  document.getElementById('waiting-title').textContent = `Answers\nLocked In`;
   document.getElementById('waiting-title').innerHTML = `Answers<br>Locked In`;
-  document.getElementById('waiting-msg').textContent = `Waiting for the host to mark`;
-  showScreen('waiting');
+document.getElementById('waiting-msg').textContent = `Waiting for the host to mark`;
+showScreen('waiting');
 }
 
 // ── Listen for game state ─────────────────────────────────────────────────────
 function listenForScores() {
-  db.ref('game').on('value', snap => {
-    const game = snap.val(); if (!game) return;
-    const round = game.currentRound ?? 0;
-    const phase = game.phase ?? 'answering';
-
-    // Detect reset — if our player record is gone, clear and reload
-    if (myPlayerId) {
-      db.ref(`players/${myPlayerId}`).get().then(pSnap => {
-        if (!pSnap.val()?.claimed) {
-          localStorage.removeItem('lnc_playerId');
-          localStorage.removeItem('lnc_quizName');
-          location.reload();
-        }
-      });
-    }
-
-    if (phase === 'scores' && round === currentRound) {
-      loadAndShowScores(round);
-    } else if (phase === 'answering' && round > currentRound) {
-      enterRound(round);
-    }
-  });
+db.ref('game').on('value', snap => {
+const game = snap.val(); if (!game) return;
+@@ -609,23 +714,26 @@ <h2 id="modal-title">Your Quiz Name</h2>
+});
 }
 
 // ── Score reveal ──────────────────────────────────────────────────────────────
 async function loadAndShowScores(roundIndex) {
-  const scoresSnap = await db.ref(`rounds/round${roundIndex}/scores`).get();
-  const allScores = scoresSnap.val() || {};
-  const playersSnap = await db.ref('players').get();
-  const playersData = playersSnap.val() || {};
+const scoresSnap = await db.ref(`rounds/round${roundIndex}/scores`).get();
+const allScores = scoresSnap.val() || {};
+const playersSnap = await db.ref('players').get();
+const playersData = playersSnap.val() || {};
   const round = ROUNDS[roundIndex];
 
-  document.getElementById('score-round-label').textContent = `Round ${roundIndex + 1}`;
+document.getElementById('score-round-label').textContent = `Round ${roundIndex + 1}`;
   document.getElementById('score-round-theme').textContent = round.name;
-  document.getElementById('your-round-score').textContent = formatScore(allScores[myPlayerId] ?? 0);
-  document.getElementById('your-total-score').textContent = formatScore(computeCumulative(playersData, roundIndex, myPlayerId));
+document.getElementById('your-round-score').textContent = formatScore(allScores[myPlayerId] ?? 0);
+document.getElementById('your-total-score').textContent = formatScore(computeCumulative(playersData, roundIndex, myPlayerId));
 
-  const rows = PLAYERS.map(p => ({
-    id: p.id,
+const rows = PLAYERS.map(p => ({
+id: p.id,
     realName: p.name,
-    qName: playersData[p.id]?.quizName || p.name,
-    roundScore: allScores[p.id] ?? 0,
-    cum: computeCumulative(playersData, roundIndex, p.id),
-    isAuto: AUTO_SCORE_ROUNDS[roundIndex] === p.id,
-  })).sort((a, b) => b.cum - a.cum);
+qName: playersData[p.id]?.quizName || p.name,
+roundScore: allScores[p.id] ?? 0,
+cum: computeCumulative(playersData, roundIndex, p.id),
+isAuto: AUTO_SCORE_ROUNDS[roundIndex] === p.id,
+    roundBonus: playersData[p.id]?.bonuses?.[`round${roundIndex}`] ?? 0,
+})).sort((a, b) => b.cum - a.cum);
 
-  const list = document.getElementById('leaderboard-list');
-  list.innerHTML = '';
-  rows.forEach((row, idx) => {
-    const isMe = row.id === myPlayerId;
-    const div = document.createElement('div');
-    div.className = `lb-row ${isMe ? 'me' : ''}`;
-    div.style.animationDelay = `${idx * 0.07}s`;
-    const rank = ['1.','2.','3.','4.','5.','6.'][idx];
-    div.innerHTML = `
-      <div class="lb-rank">${rank}</div>
+const list = document.getElementById('leaderboard-list');
+@@ -638,17 +746,22 @@ <h2 id="modal-title">Your Quiz Name</h2>
+const rank = ['1.','2.','3.','4.','5.','6.'][idx];
+div.innerHTML = `
+     <div class="lb-rank">${rank}</div>
+      <div class="lb-name">${row.qName}${row.isAuto ? '<span class="auto-tag">Auto</span>' : ''}${row.roundBonus ? '<span class="bonus-tag">+Bonus</span>' : ''}${isMe ? ' &larr;' : ''}</div>
       <div class="lb-player">
         <div class="lb-quiz-name">${row.qName}${row.isAuto ? '<span class="auto-tag">Auto</span>' : ''}${isMe ? ' &larr;' : ''}</div>
         <div class="lb-real-name">${row.realName}</div>
       </div>
-      <div class="lb-scores">
-        <div class="lb-round-pts">+${formatScore(row.roundScore)}</div>
-        <div class="lb-total-pts">${formatScore(row.cum)}</div>
-      </div>
-    `;
-    list.appendChild(div);
-  });
+     <div class="lb-scores">
+       <div class="lb-round-pts">+${formatScore(row.roundScore)}</div>
+       <div class="lb-total-pts">${formatScore(row.cum)}</div>
+     </div>
+   `;
+list.appendChild(div);
+});
 
-  showScreen('scores');
+showScreen('scores');
 }
 
 // ── Cumulative score — includes bonuses, no separate display ─────────────────
 function computeCumulative(playersData, upToRound, playerId) {
-  const p = playersData[playerId]; if (!p) return 0;
-  let total = 0;
-  for (let i = 0; i <= upToRound; i++) {
-    total += p.scores?.[`round${i}`] ?? 0;
-    total += p.bonuses?.[`round${i}`] ?? 0;
-  }
-  return Math.round(total * 10) / 10;
+const p = playersData[playerId]; if (!p) return 0;
+let total = 0;
+@@ -658,12 +771,8 @@ <h2 id="modal-title">Your Quiz Name</h2>
+}
+return Math.round(total * 10) / 10;
+}
+function formatScore(n) {
+  if (typeof n !== 'number') return '0';
+  const r = Math.round(n * 10) / 10;
+  return Number.isInteger(r) ? r.toString() : r.toFixed(1);
 }
 
-// ── Init — restores session from localStorage on reload ───────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
-  // Try to restore identity from previous session
-  const savedId   = localStorage.getItem('lnc_playerId');
-  const savedName = localStorage.getItem('lnc_quizName');
-
-  if (savedId && savedName) {
-    myPlayerId  = savedId;
-    myQuizName  = savedName;
-
-    // Verify they're still in Firebase (quiz hasn't been reset)
-    const playerSnap = await db.ref(`players/${myPlayerId}`).get();
-    if (!playerSnap.val()?.claimed) {
-      // Quiz was reset — clear saved session and show name select
-      localStorage.removeItem('lnc_playerId');
-      localStorage.removeItem('lnc_quizName');
-      myPlayerId = null; myQuizName = null;
-    } else {
-      // Restore to correct screen based on current game state
-      const gameSnap = await db.ref('game').get();
-      const game = gameSnap.val() || {};
-      currentRound = game.currentRound ?? 0;
-      const phase  = game.phase ?? 'answering';
-
-      if (phase === 'scores') {
-        loadAndShowScores(currentRound);
-      } else {
-        // Check if already submitted this round
-        const ansSnap = await db.ref(`rounds/round${currentRound}/answers/${myPlayerId}`).get();
-        if (ansSnap.val()) {
-          hasSubmitted = true;
-          document.getElementById('waiting-title').innerHTML = `Answers<br>Locked In`;
-          document.getElementById('waiting-msg').textContent = `Waiting for the host to mark`;
-          showScreen('waiting');
-        } else {
-          enterRound(currentRound);
-        }
-      }
-    }
-  }
-
-  // Always watch players list (for name grid + taken status)
-  db.ref('players').on('value', snap => {
-    const data = snap.val() || {};
-    const takenMap = {}, quizNames = {};
-    Object.keys(data).forEach(id => {
-      if (data[id].claimed) takenMap[id] = true;
-      if (data[id].quizName) quizNames[id] = data[id].quizName;
-    });
-    if (!myPlayerId) buildGrid(takenMap, quizNames);
-  });
-
-  listenForScores();
-}
-
-init();
-</script>
-</body>
-</html>
+db.ref('players').on('value', snap => {
+const data = snap.val() || {};
