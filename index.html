@@ -782,6 +782,18 @@ function listenForScores() {
     const game = snap.val(); if (!game) return;
     const round = game.currentRound ?? 0;
     const phase = game.phase ?? 'answering';
+
+    // Detect reset — if our player record is gone, clear and reload
+    if (myPlayerId) {
+      db.ref(`players/${myPlayerId}`).get().then(pSnap => {
+        if (!pSnap.val()?.claimed) {
+          localStorage.removeItem('lnc_playerId');
+          localStorage.removeItem('lnc_quizName');
+          location.reload();
+        }
+      });
+    }
+
     if (phase === 'scores' && round === currentRound) {
       loadAndShowScores(round);
     } else if (phase === 'answering' && round > currentRound) {
